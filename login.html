@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Connexion — Pirates Paradise BI</title>
+
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+  <style>
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:#071a2a;
+      color:#eaf2ff;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+    }
+    .box{
+      width:380px;
+      padding:30px;
+      border-radius:16px;
+      background:#0c2236;
+      border:1px solid rgba(207,163,74,.25);
+      text-align:center;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+    h2{ margin:0 0 8px 0; font-size:18px; }
+    p{ margin:0 0 16px 0; color:#b7c7dd; font-size:13px; line-height:1.4; }
+    button{
+      width:100%;
+      padding:12px;
+      margin-top:12px;
+      border-radius:12px;
+      font-weight:800;
+      cursor:pointer;
+      border:none;
+    }
+    .gold{ background:#cfa34a; }
+    .ghost{
+      background:transparent;
+      border:1px solid rgba(207,163,74,.25);
+      color:#eaf2ff;
+      font-weight:700;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box">
+    <h2>🏴‍☠️ Pirates Paradise — Dashboard</h2>
+    <p>Connexion réservée à l’équipe.</p>
+
+    <button class="gold" id="btnLogin">Se connecter</button>
+    <button class="ghost" id="btnRecovery">Mot de passe oublié</button>
+  </div>
+
+<script>
+  netlifyIdentity.init();
+
+  const hash = window.location.hash || "";
+  const hasRecovery = hash.includes("recovery_token=");
+  const hasInvite = hash.includes("invite_token=") || hash.includes("confirmation_token=");
+
+  // 🔥 Si le lien email contient un token, on ouvre automatiquement le bon écran
+  if (hasRecovery) {
+    netlifyIdentity.open("recovery");
+  } else if (hasInvite) {
+    netlifyIdentity.open("signup");
+  }
+
+  document.getElementById("btnLogin").addEventListener("click", () => {
+    netlifyIdentity.open("login");
+  });
+
+  document.getElementById("btnRecovery").addEventListener("click", () => {
+    netlifyIdentity.open("recovery");
+  });
+
+  netlifyIdentity.on("login", () => {
+    window.location.href = "/";
+  });
+</script>
+</body>
+</html>

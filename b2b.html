@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pirates Paradise — Intranet</title>
+
+  <style>
+    :root{
+      --pp-navy:#052644;
+      --pp-navy-2:#0b355a;
+      --bg:#f6f8fb;
+      --surface:#ffffff;
+      --text:#0b1220;
+      --muted:#5b6577;
+      --border:#e3e8f0;
+      --shadow:0 10px 24px rgba(16,24,40,.08);
+      --radius:16px;
+      --radius-sm:12px;
+      --gap:16px;
+
+      --danger:#b42318;
+      --warning:#b45309;
+      --success:#16794c;
+      --info:#1d4ed8;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:var(--bg);
+      color:var(--text);
+    }
+    a{color:inherit;text-decoration:none}
+    .container{max-width:1200px;margin:0 auto;padding:0 18px;}
+    /* Topbar */
+    header{
+      position:sticky;
+      top:0;
+      z-index:20;
+      background:rgba(246,248,251,.88);
+      backdrop-filter:saturate(160%) blur(10px);
+      border-bottom:1px solid var(--border);
+    }
+    .topbar{
+      height:64px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:240px;
+    }
+    .logo{
+      width:36px;height:36px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg,#fff, #f2f6fb);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:900;
+      color:var(--pp-navy);
+      letter-spacing:.6px;
+    }
+    .brand h1{
+      margin:0;
+      font-size:14px;
+      line-height:1.1;
+      font-weight:800;
+      color:var(--pp-navy);
+    }
+    .brand .sub{
+      margin:2px 0 0 0;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .top-actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    /* Search */
+    .search{
+      flex:1;
+      display:flex;
+      justify-content:center;
+    }
+    .searchbox{
+      width:min(640px,100%);
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--surface);
+      box-shadow:0 1px 0 rgba(16,24,40,.02);
+    }
+    .searchbox input{
+      width:100%;
+      border:none;
+      outline:none;
+      font-size:13px;
+      color:var(--text);
+      background:transparent;
+    }
+    .kbd{
+      font-size:11px;
+      color:var(--muted);
+      border:1px solid var(--border);
+      padding:2px 8px;
+      border-radius:999px;
+      white-space:nowrap;
+    }
+
+    /* Controls */
+    .select{
+      border:1px solid var(--border);
+      background:var(--surface);
+      padding:9px 10px;
+      border-radius:12px;
+      font-size:12px;
+      color:var(--text);
+      outline:none;
+    }
+    .btn{
+      border:1px solid var(--border);
+      background:var(--surface);
+      padding:9px 12px;
+      border-radius:12px;
+      font-size:12px;
+      color:var(--text);
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      cursor:pointer;
+      transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .btn:hover{
+      transform:translateY(-1px);
+      border-color:#cfd8e3;
+      box-shadow:0 10px 24px rgba(16,24,40,.08);
+    }
+    .btn.primary{
+      background:var(--pp-navy);
+      border-color:var(--pp-navy);
+      color:#fff;
+    }
+    /* Layout */
+    main{padding:22px 0;}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(12,1fr);
+      gap:var(--gap);
+      margin-top:var(--gap);
+    }
+
+    /* Cards */
+    .card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:var(--shadow);
+    }
+    .card h2{
+      margin:0 0 10px 0;
+      font-size:13px;
+      font-weight:800;
+      color:var(--pp-navy);
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .muted{color:var(--muted);font-size:12px;line-height:1.4;}
+
+    /* Badges */
+    .badge{
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .p1{border-color:rgba(180,35,24,.25);color:var(--danger);}
+    .p2{border-color:rgba(180,83,9,.25);color:var(--warning);}
+    .p3{border-color:rgba(29,78,216,.20);color:var(--info);}
+
+    /* Columns */
+    .span-12{grid-column:span 12;}
+    .span-8{grid-column:span 8;}
+    .span-6{grid-column:span 6;}
+    .span-4{grid-column:span 4;}
+    .span-3{grid-column:span 3;}
+    /* Today Focus */
+    .today{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:14px;
+      padding:18px;
+      border-radius:20px;
+      border:1px solid rgba(5,38,68,.10);
+      background:
+        radial-gradient(900px 220px at 20% 0%, rgba(5,38,68,.07), transparent 55%),
+        #ffffff;
+    }
+    .today h3{
+      margin:0 0 6px 0;
+      font-size:18px;
+      color:var(--pp-navy);
+    }
+
+    /* KPI row */
+    .kpi-row{
+      display:grid;
+      grid-template-columns:repeat(12,1fr);
+      gap:var(--gap);
+      margin-top:12px;
+    }
+    .kpi{
+      grid-column:span 4;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      background:#fff;
+    }
+    .kpi .label{font-size:12px;color:var(--muted);}
+    .kpi .value{font-size:20px;font-weight:900;margin-top:6px;}
+    .kpi .delta{margin-top:6px;font-size:12px;color:var(--muted);}
+    .up{color:var(--success);font-weight:700;}
+    .down{color:var(--danger);font-weight:700;}
+
+    /* Lists */
+    .list{list-style:none;padding:0;margin:10px 0 0 0;display:grid;gap:10px;}
+    .item{
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:#fff;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+    }
+
+    /* Responsive */
+    @media (max-width:980px){
+      .span-8,.span-6,.span-4,.span-3{grid-column:span 12;}
+      .kpi{grid-column:span 6;}
+      .search{display:none;}
+    }
+    @media (max-width:520px){
+      .kpi{grid-column:span 12;}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="topbar">
+
+      <!-- Brand -->
+      <div class="brand">
+        <div class="logo">PP</div>
+        <div>
+          <h1>Pirates Paradise — Intranet</h1>
+          <p class="sub" id="subtitle">Accueil • Dashboard</p>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="search">
+        <div class="searchbox">
+          🔎
+          <input id="searchInput" type="search"
+            placeholder="Rechercher une procédure, une page, un outil…" />
+          <span class="kbd">Entrée</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="top-actions">
+        <select class="select" id="roleSelect">
+          <option value="manager">Manager</option>
+          <option value="direction">Direction</option>
+          <option value="salle">Salle</option>
+          <option value="bar">Bar</option>
+          <option value="cuisine">Cuisine</option>
+          <option value="event">Événementiel</option>
+          <option value="maintenance">Maintenance</option>
+        </select>
+
+        <a class="btn" href="./ops.html">✅ Ops</a>
+        <a class="btn primary" href="./ca.html">📊 Analytics</a>
+      </div>
+
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <!-- TODAY FOCUS -->
+    <section class="card span-12">
+      <div class="today">
+        <div>
+          <h3>Bonjour capitaine 👋</h3>
+          <p class="muted">
+            Vue rapide du jour : chiffres clés, alertes prioritaires,
+            et actions immédiates pour piloter le restaurant.
+          </p>
+
+          <p class="muted" style="margin-top:8px;">
+            Dernière mise à jour : <strong id="lastUpdate">—</strong>
+          </p>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+          <a class="btn primary" href="./ops.html">✅ Checklist du jour</a>
+          <a class="btn" href="./alerts.html">🚨 Déclarer incident</a>
+          <a class="btn" href="./docs.html">📚 Procédures</a>
+        </div>
+      </div>
+
+      <!-- KPI ROW -->
+      <div class="kpi-row">
+
+        <div class="kpi">
+          <div class="label">CA Jour</div>
+          <div class="value" id="kpi_ca_day">—</div>
+          <div class="delta" id="kpi_ca_day_vs">—</div>
+        </div>
+
+        <div class="kpi">
+          <div class="label">CA Semaine-to-date</div>
+          <div class="value" id="kpi_ca_wtd">—</div>
+          <div class="delta" id="kpi_ca_wtd_vs">—</div>
+        </div>
+
+        <div class="kpi">
+          <div class="label">CA Mois-to-date</div>
+          <div class="value" id="kpi_ca_mtd">—</div>
+          <div class="delta" id="kpi_ca_mtd_vs">—</div>
+        </div>
+
+      </div>
+    </section>
+      <div class="kpi-row" style="margin-top:14px;">
+
+        <div class="kpi">
+          <div class="label">Couverts Jour</div>
+          <div class="value" id="kpi_covers_day">—</div>
+          <div class="delta" id="kpi_covers_day_vs">—</div>
+        </div>
+
+        <div class="kpi">
+          <div class="label">Ticket moyen Jour</div>
+          <div class="value" id="kpi_tm_day">—</div>
+          <div class="delta" id="kpi_tm_day_vs">—</div>
+        </div>
+
+        <div class="kpi">
+          <div class="label">Focus du jour</div>
+          <div class="value" id="kpi_focus">—</div>
+          <div class="delta muted">
+            Alerte prioritaire + recommandation
+          </div>
+        </div>
+
+      </div>
+    </section>
+      <div class="kpi-row" style="margin-top:14px;">
+
+        <div class="kpi">
+          <div class="label">Couverts Jour</div>
+          <div class="value" id="kpi_covers_day">—</div>
+          <div class="delta" id="kpi_covers_day_vs">—</div>
+        </div>
+
+        <div class="kpi">
+          <div class="label">Ticket moyen Jour</div>
+          <div class="value" id="kpi_tm_day">—</div>
+          <div class="delta" id="kpi_tm_day_vs">—</div>
+        </div>
+
+        <div class="kpi">
+          <div class="label">Focus du jour</div>
+          <div class="value" id="kpi_focus">—</div>
+          <div class="delta muted">
+            Alerte prioritaire + recommandation
+          </div>
+        </div>
+
+      </div>
+    </section>
+    <!-- DASHBOARD CORE -->
+    <section class="grid">
+
+      <!-- Graph -->
+      <!-- Graph -->
+<div class="card span-8">
+  <h2>📈 Tendance CA (30 jours)</h2>
+  <p class="muted">
+    Comparaison automatique vs N-1.
+  </p>
+
+  <!-- Controls -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+    <button class="btn" id="btn7">7j</button>
+    <button class="btn" id="btn30">30j</button>
+    <button class="btn" id="btnYTD">YTD</button>
+
+    <span class="muted">Du</span>
+    <input type="date" id="fromDate" class="select">
+
+    <span class="muted">Au</span>
+    <input type="date" id="toDate" class="select">
+
+    <button class="btn primary" id="btnApply">Appliquer</button>
+  </div>
+
+  <!-- ✅ FIX HEIGHT -->
+  <div style="height:260px;width:100%;margin-top:14px;">
+    <canvas id="caChart"></canvas>
+  </div>
+
+  <p class="muted" id="chartMeta" style="margin-top:8px;">
+    —
+  </p>
+</div>
+
+      <!-- Alerts -->
+      <div class="card span-4">
+        <h2>🚨 Alertes prioritaires</h2>
+        <p class="muted">
+          Seuils automatiques : baisse CA, fréquentation, anomalies ticket moyen.
+        </p>
+
+        <ul class="list" id="alertList">
+
+          <li class="item">
+            <div>
+              <strong>Ticket moyen en baisse</strong>
+              <div class="muted">-18% vs N-1 • Service soir</div>
+            </div>
+            <span class="badge p1">P1</span>
+          </li>
+
+          <li class="item">
+            <div>
+              <strong>Fréquentation faible</strong>
+              <div class="muted">-12 couverts vs N-1</div>
+            </div>
+            <span class="badge p2">P2</span>
+          </li>
+
+          <li class="item">
+            <div>
+              <strong>RAS cette semaine</strong>
+              <div class="muted">Surveillance normale</div>
+            </div>
+            <span class="badge p3">P3</span>
+          </li>
+
+        </ul>
+
+        <div style="margin-top:10px;">
+          <a class="btn" href="./alerts.html">Ouvrir toutes les alertes →</a>
+        </div>
+      </div>
+
+    </section>
+    <!-- OPS + NEWS -->
+    <section class="grid">
+
+      <!-- Ops -->
+      <div class="card span-6">
+        <h2>✅ Opérations du jour</h2>
+        <p class="muted">
+          Checklists + tâches managers (ouverture / service / fermeture).
+        </p>
+
+        <ul class="list">
+          <li class="item">
+            <div>
+              <strong>Checklist ouverture</strong>
+              <div class="muted">12 étapes restantes</div>
+            </div>
+            <a class="btn" href="./ops.html">Ouvrir</a>
+          </li>
+
+          <li class="item">
+            <div>
+              <strong>Brief service midi</strong>
+              <div class="muted">Objectif : upsell desserts + accueil</div>
+            </div>
+            <span class="badge">Aujourd’hui</span>
+          </li>
+
+          <li class="item">
+            <div>
+              <strong>Checklist fermeture</strong>
+              <div class="muted">À compléter ce soir</div>
+            </div>
+            <a class="btn" href="./ops.html">Voir</a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- News -->
+      <div class="card span-6">
+        <h2>📰 Annonces internes</h2>
+        <p class="muted">
+          Dernières infos direction / managers (branchable Notion ou Google Sheet).
+        </p>
+
+        <ul class="list">
+          <li class="item">
+            <div>
+              <strong>Nouveau menu enfants vendredi</strong>
+              <div class="muted">Cuisine • Mise à jour carte</div>
+            </div>
+            <span class="badge">Cette semaine</span>
+          </li>
+
+          <li class="item">
+            <div>
+              <strong>Priorité du jour : satisfaction client</strong>
+              <div class="muted">Salle • Brief express</div>
+            </div>
+            <span class="badge">Aujourd’hui</span>
+          </li>
+
+          <li class="item">
+            <div>
+              <strong>Maintenance : contrôle zone kids</strong>
+              <div class="muted">Prévu lundi matin</div>
+            </div>
+            <span class="badge">À venir</span>
+          </li>
+        </ul>
+      </div>
+
+    </section>
+    <!-- DOCS + TOOLS -->
+    <section class="grid">
+
+      <!-- Docs -->
+      <div class="card span-6">
+        <h2>📚 Procédures & documents clés</h2>
+        <p class="muted">
+          Accès rapide aux standards opérationnels Pirates Paradise.
+        </p>
+
+        <ul class="list">
+          <li class="item">
+            <div>
+              <strong>Procédure encaissement</strong>
+              <div class="muted">Salle • Version Jan 2026</div>
+            </div>
+            <a class="btn" href="./docs.html">Ouvrir</a>
+          </li>
+
+          <li class="item">
+            <div>
+              <strong>Gestion incident client</strong>
+              <div class="muted">Manager • Script + actions</div>
+            </div>
+            <a class="btn" href="./docs.html">Voir</a>
+          </li>
+
+          <li class="item">
+            <div>
+              <strong>Hygiène & HACCP</strong>
+              <div class="muted">Cuisine • Checklist officielle</div>
+            </div>
+            <a class="btn" href="./docs.html">Accéder</a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Tools -->
+      <div class="card span-6">
+        <h2>🧭 Outils internes</h2>
+        <p class="muted">
+          Tout l’écosystème au même endroit (n8n, Zelty, Notion, Drive…).
+        </p>
+
+        <div class="grid" style="margin-top:12px;">
+          <a class="card span-3" href="https://pp.autopdm.fr/" target="_blank">
+            <h2>⚙️ n8n</h2>
+            <p class="muted">Automatisations</p>
+          </a>
+
+          <a class="card span-3" href="./ca.html">
+            <h2>📊 CA</h2>
+            <p class="muted">Analytics</p>
+          </a>
+
+          <a class="card span-3" href="https://drive.google.com" target="_blank">
+            <h2>📁 Drive</h2>
+            <p class="muted">Documents</p>
+          </a>
+
+          <a class="card span-3" href="./ops.html">
+            <h2>✅ Ops</h2>
+            <p class="muted">Checklists</p>
+          </a>
+        </div>
+      </div>
+
+    </section>
+  </div>
+</main>
+
+<!-- ✅ Chart.js doit être chargé AVANT ton script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<!-- Chart.js (doit être chargé avant le script ci-dessous) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+  // ─────────────────────────────────────────────
+  // Config
+  // ─────────────────────────────────────────────
+  const API_URL = "https://pp.autopdm.fr/webhook/pp/dashboard?token=pp_lille_59";
+
+  const eur = (n) =>
+    n == null ? "—" :
+    new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
+
+  // ─────────────────────────────────────────────
+  // Chart instance
+  // ─────────────────────────────────────────────
+  let caChartInstance = null;
+
+  // ─────────────────────────────────────────────
+  // Helpers dates (UTC-safe)
+  // ─────────────────────────────────────────────
+  function parseISO(iso) {
+    if (!iso) return null;
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 1, d));
+  }
+
+  function formatISO(d) {
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(d.getUTCDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  function toLabelFR(isoDate) {
+    if (!isoDate) return "";
+    const [y, m, d] = isoDate.split("-");
+    return `${d}/${m}`;
+  }
+
+  function startOfYearUTC(d) {
+    return new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  }
+
+  function daysAgoUTC(d, n) {
+    const x = new Date(d);
+    x.setUTCDate(x.getUTCDate() - n);
+    return x;
+  }
+
+  // ─────────────────────────────────────────────
+  // Render Chart (rows already filtered)
+  // ─────────────────────────────────────────────
+  function renderChart(rows, metaText) {
+    const canvas = document.getElementById("caChart");
+    const meta = document.getElementById("chartMeta");
+    if (!canvas) return;
+
+    if (!Array.isArray(rows) || rows.length < 2) {
+      if (meta) meta.textContent = "Pas assez de données pour afficher le graphique.";
+      return;
+    }
+
+    const labels = rows.map(r => toLabelFR(r.date));
+    const ca = rows.map(r => Number(r.ca_day ?? 0));
+    const caN1 = rows.map(r => (r.ca_day_n1 == null ? null : Number(r.ca_day_n1)));
+
+    if (caChartInstance) {
+      caChartInstance.destroy();
+      caChartInstance = null;
+    }
+
+    caChartInstance = new Chart(canvas.getContext("2d"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "CA (N)",
+            data: ca,
+            tension: 0.35,
+            borderWidth: 2,
+            pointRadius: 0
+          },
+          {
+            label: "CA (N-1)",
+            data: caN1,
+            tension: 0.35,
+            borderWidth: 2,
+            pointRadius: 0,
+            borderDash: [6, 5]
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { display: true },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const v = ctx.raw;
+                if (v == null) return `${ctx.dataset.label}: —`;
+                return `${ctx.dataset.label}: ${eur(v)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
+          y: {
+            grid: { color: "rgba(227,232,240,0.9)" },
+            ticks: {
+              callback: (v) => {
+                const n = Number(v);
+                if (Number.isNaN(n)) return v;
+                if (Math.abs(n) >= 1000) return `${Math.round(n / 1000)}k€`;
+                return `${n}€`;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (meta) meta.textContent = metaText || `Tendance sur ${rows.length} jours • CA vs N-1`;
+  }
+
+  // ─────────────────────────────────────────────
+  // Filtering logic (no refetch)
+  // ─────────────────────────────────────────────
+  let HISTORY_CACHE = [];
+  let CONTROLS_BOUND = false;
+
+  function filterHistoryByRange(history, fromISO, toISO) {
+    const fromD = parseISO(fromISO);
+    const toD = parseISO(toISO);
+    if (!fromD || !toD) return history;
+
+    // Inclure toDate (on ajoute +1 jour)
+    const toPlus = new Date(toD);
+    toPlus.setUTCDate(toPlus.getUTCDate() + 1);
+
+    return history.filter(r => {
+      const d = parseISO(r.date);
+      return d && d >= fromD && d < toPlus;
+    });
+  }
+
+  function setPreset(preset) {
+    if (!HISTORY_CACHE.length) return;
+
+    const sorted = [...HISTORY_CACHE].sort((a, b) => parseISO(a.date) - parseISO(b.date));
+    const lastDate = parseISO(sorted[sorted.length - 1].date) || new Date();
+
+    let from, to;
+    to = lastDate;
+
+    if (preset === "7") {
+      from = daysAgoUTC(to, 6);
+    } else if (preset === "30") {
+      from = daysAgoUTC(to, 29);
+    } else {
+      // YTD
+      from = startOfYearUTC(to);
+    }
+
+    const fromISO = formatISO(from);
+    const toISO = formatISO(to);
+
+    // Sync calendrier
+    const fromInput = document.getElementById("fromDate");
+    const toInput = document.getElementById("toDate");
+    if (fromInput) fromInput.value = fromISO;
+    if (toInput) toInput.value = toISO;
+
+    const rows = filterHistoryByRange(sorted, fromISO, toISO);
+    renderChart(rows, `Période : ${toLabelFR(fromISO)} → ${toLabelFR(toISO)} • ${rows.length} jours`);
+  }
+
+  function applyCalendarRange() {
+    if (!HISTORY_CACHE.length) return;
+
+    const fromISO = document.getElementById("fromDate")?.value;
+    const toISO = document.getElementById("toDate")?.value;
+    if (!fromISO || !toISO) return;
+
+    const sorted = [...HISTORY_CACHE].sort((a, b) => parseISO(a.date) - parseISO(b.date));
+    const rows = filterHistoryByRange(sorted, fromISO, toISO);
+    renderChart(rows, `Période : ${toLabelFR(fromISO)} → ${toLabelFR(toISO)} • ${rows.length} jours`);
+  }
+
+  function bindChartControls() {
+    if (CONTROLS_BOUND) return;
+    CONTROLS_BOUND = true;
+
+    document.getElementById("btn7")?.addEventListener("click", () => setPreset("7"));
+    document.getElementById("btn30")?.addEventListener("click", () => setPreset("30"));
+    document.getElementById("btnYTD")?.addEventListener("click", () => setPreset("ytd"));
+    document.getElementById("btnApply")?.addEventListener("click", applyCalendarRange);
+  }
+
+  // ─────────────────────────────────────────────
+  // Load KPIs + init chart controls
+  // ─────────────────────────────────────────────
+  async function loadKPIs() {
+    try {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      const last = data.last || {};
+
+      // KPIs
+      document.getElementById("lastUpdate").textContent = last.date ?? "—";
+      document.getElementById("kpi_ca_day").textContent = eur(last.ca_day);
+      document.getElementById("kpi_ca_wtd").textContent = eur(last.ca_week_to_date);
+      document.getElementById("kpi_ca_mtd").textContent = eur(last.ca_month_to_date);
+      document.getElementById("kpi_covers_day").textContent = last.covers_day ?? "—";
+      document.getElementById("kpi_tm_day").textContent = eur(last.avg_ticket_day);
+
+      document.getElementById("kpi_focus").textContent =
+        (last.ca_day_vs_n1_pct < -10) ? "⚠️ Baisse CA aujourd’hui" : "✅ Situation normale";
+
+      // Chart data cache
+      HISTORY_CACHE = Array.isArray(data.history) ? data.history : [];
+
+      bindChartControls();
+
+      // Default view
+      setPreset("30");
+
+    } catch (e) {
+      document.getElementById("kpi_focus").textContent = "API indisponible";
+      const meta = document.getElementById("chartMeta");
+      if (meta) meta.textContent = "Graph indisponible (API).";
+    }
+  }
+
+  loadKPIs();
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pirates Paradise — Intranet • CA</title>
+  <link rel="stylesheet" href="./assets/app.css">
+  <script src="./assets/app.js" defer></script>
+</head>
+
+<body data-page="ca">
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">
+        <div class="logo">PP</div>
+        <div>
+          <div class="brand-title">Pirates Paradise — Intranet</div>
+          <div class="brand-sub" id="subtitle">—</div>
+        </div>
+      </div>
+
+      <div class="search">
+        <div class="searchbox">
+          🔎
+          <input id="searchInput" type="search" placeholder="Rechercher une procédure, une page, un outil…" />
+          <span class="kbd">Entrée</span>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <select class="select" id="roleSelect">
+          <option value="manager">Manager</option>
+          <option value="direction">Direction</option>
+          <option value="salle">Salle</option>
+          <option value="bar">Bar</option>
+          <option value="cuisine">Cuisine</option>
+          <option value="event">Événementiel</option>
+          <option value="maintenance">Maintenance</option>
+        </select>
+
+        <a class="btn" href="./ops.html">✅ Ops</a>
+        <a class="btn primary" href="./index.html">🏠 Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <nav class="nav">
+      <a class="nav-link" href="./index.html" data-nav="home">Dashboard</a>
+      <a class="nav-link" href="./ca.html" data-nav="ca">CA</a>
+      <a class="nav-link" href="./frequentation.html" data-nav="frequentation">Fréquentation</a>
+      <a class="nav-link" href="./alerts.html" data-nav="alerts">Alertes</a>
+      <a class="nav-link" href="./ops.html" data-nav="ops">Ops</a>
+      <a class="nav-link" href="./docs.html" data-nav="docs">Docs</a>
+      <a class="nav-link" href="./tools.html" data-nav="tools">Outils</a>
+
+      <span class="nav-sep"></span>
+
+      <a class="nav-link" href="./crm.html" data-nav="crm">CRM</a>
+      <a class="nav-link" href="./b2b.html" data-nav="b2b">B2B</a>
+      <a class="nav-link" href="./rh.html" data-nav="rh">RH</a>
+      <a class="nav-link" href="./finance.html" data-nav="finance">Compta</a>
+      <a class="nav-link" href="./com.html" data-nav="com">Com</a>
+      <a class="nav-link" href="./gifts.html" data-nav="gifts">Bons cadeaux</a>
+      <a class="nav-link" href="./settings.html" data-nav="settings">Réglages</a>
+    </nav>
+
+    <section class="page">
+      <div class="page-head">
+        <h2 id="pageTitle">Analytics • Chiffre d’affaires</h2>
+        <div class="muted">Dernière mise à jour : <strong id="lastUpdate">—</strong></div>
+      </div>
+
+      <!-- Header actions -->
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;">
+          <div>
+            <div style="font-weight:800;color:var(--pp-navy);">Objectif</div>
+            <div class="muted" style="margin-top:6px;">
+              Suivre le CA jour / semaine / mois, détecter les écarts, et piloter la journée (ticket moyen, couverts, upsell).
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a class="btn" href="./alerts.html">🚨 Alertes</a>
+            <a class="btn" href="./ops.html">✅ Ops</a>
+            <a class="btn" href="./docs.html">📚 Procédures</a>
+            <a class="btn" href="./tools.html">🧰 Outils</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI grid -->
+      <div class="grid">
+        <div class="card span-12">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:800;color:var(--pp-navy);">📌 KPIs CA</div>
+              <div class="muted">MVP : On branche cette page à l’endpoint n8n <code>/pp/ca</code> ensuite.</div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn" type="button" disabled>Exporter CSV (plus tard)</button>
+              <button class="btn" type="button" disabled>Changer période (plus tard)</button>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:14px;">
+            <div class="card span-4" style="box-shadow:none;">
+              <div class="muted">CA jour</div>
+              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_ca_day">—</div>
+              <div class="muted" style="margin-top:6px;">Vs N-1 / tendance (à afficher ici)</div>
+            </div>
+
+            <div class="card span-4" style="box-shadow:none;">
+              <div class="muted">CA semaine (WTD)</div>
+              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_ca_wtd">—</div>
+              <div class="muted" style="margin-top:6px;">Cumul semaine</div>
+            </div>
+
+            <div class="card span-4" style="box-shadow:none;">
+              <div class="muted">CA mois (MTD)</div>
+              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_ca_mtd">—</div>
+              <div class="muted" style="margin-top:6px;">Cumul mois</div>
+            </div>
+
+            <div class="card span-6" style="box-shadow:none;">
+              <div class="muted">Couverts jour</div>
+              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_covers_day">—</div>
+              <div class="muted" style="margin-top:6px;">Contexte service / capacité</div>
+            </div>
+
+            <div class="card span-6" style="box-shadow:none;">
+              <div class="muted">Ticket moyen jour</div>
+              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_tm_day">—</div>
+              <div class="muted" style="margin-top:6px;">Aide : upsell desserts / boissons</div>
+            </div>
+
+            <div class="card span-12" style="box-shadow:none;">
+              <div class="muted">Focus du jour</div>
+              <div style="font-size:16px;font-weight:900;margin-top:6px;" id="kpi_focus">—</div>
+              <div class="muted" style="margin-top:6px;">Recommandation (à enrichir ensuite via n8n)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trend placeholder -->
+        <div class="card span-12">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:800;color:var(--pp-navy);">📈 Tendance CA (placeholder)</div>
+              <div class="muted">On ajoutera le graphique CA vs N-1 après. Pour l’instant on termine l’arborescence + pages vivantes.</div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn" type="button" disabled>7j</button>
+              <button class="btn" type="button" disabled>30j</button>
+              <button class="btn" type="button" disabled>YTD</button>
+            </div>
+          </div>
+
+          <div class="card" style="box-shadow:none;margin-top:12px;">
+            <div class="muted">Zone graphique (à brancher plus tard)</div>
+            <div style="height:220px;border:1px dashed var(--border);border-radius:12px;margin-top:10px;background:#fbfdff;"></div>
+            <div class="muted" style="margin-top:10px;">Quand on activera le graphe : données <code>history</code> + sélecteur de période.</div>
+          </div>
+        </div>
+
+        <!-- Next actions -->
+        <div class="card span-12">
+          <div style="font-weight:800;color:var(--pp-navy);">➡️ Prochaines améliorations (après MVP)</div>
+          <ul class="muted" style="margin:10px 0 0 0; padding-left:18px;">
+            <li>Graph CA vs N-1 + presets (7j/30j/YTD)</li>
+            <li>Table “Top / Flop jours”</li>
+            <li>Alertes automatiques (baisse CA, anomalie ticket moyen)</li>
+            <li>Export CSV / PDF pour direction</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
