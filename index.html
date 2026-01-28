@@ -3,116 +3,147 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pirates Paradise — Intranet</title>
+  <title>Pirates Paradise — Intranet • Dashboard</title>
 
-  <!-- Styles (global) -->
   <link rel="stylesheet" href="./assets/app.css">
-
-  <!-- Chart.js (pour le graphe CA) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
-  <!-- Script (global) -->
   <script src="./assets/app.js" defer></script>
 </head>
 
-<body>
-  <!-- Topbar -->
+<body data-page="home">
   <header class="topbar">
-    <div class="brand">
-      <div class="logo">PP</div>
-      <div class="brandText">
-        <div class="brandTitle">Pirates Paradise — Intranet</div>
-        <div class="brandSub">Dashboard interne</div>
+    <div class="container topbar-inner">
+      <div class="brand">
+        <div class="logo">PP</div>
+        <div>
+          <div class="brand-title">Pirates Paradise — Intranet</div>
+          <div class="brand-sub" id="subtitle">Dashboard interne</div>
+        </div>
       </div>
-    </div>
 
-    <div class="search">
-      <span class="icon">🔎</span>
-      <input id="searchInput" type="search" placeholder="Rechercher une page, une procédure, un outil..." />
-      <span class="kbd">Entrée</span>
-    </div>
+      <div class="search">
+        <div class="searchbox">
+          🔎
+          <input id="searchInput" type="search" placeholder="Rechercher une procédure, une page, un outil…" />
+          <span class="kbd">Entrée</span>
+        </div>
+      </div>
 
-    <div class="actions">
-      <select id="roleSelect" class="select">
-        <option>Manager</option>
-        <option>Direction</option>
-        <option>Compta</option>
-        <option>Cuisine</option>
-      </select>
+      <div class="top-actions">
+        <select class="select" id="roleSelect">
+          <option value="manager">Manager</option>
+          <option value="direction">Direction</option>
+          <option value="salle">Salle</option>
+          <option value="bar">Bar</option>
+          <option value="cuisine">Cuisine</option>
+          <option value="event">Événementiel</option>
+          <option value="maintenance">Maintenance</option>
+        </select>
 
-      <a class="pill active" href="./index.html">🏠 Dashboard</a>
-      <a class="pill" href="./ops.html">✅ Ops</a>
+        <a class="btn" href="./ops.html">✅ Ops</a>
+        <a class="btn primary" href="./index.html">🏠 Dashboard</a>
+      </div>
     </div>
   </header>
 
-  <!-- Navigation -->
-  <nav class="subnav">
-    <a class="subnavLink active" href="./index.html">Dashboard</a>
-    <a class="subnavLink" href="./ca.html">CA</a>
-    <a class="subnavLink" href="./frequentation.html">Fréquentation</a>
-    <a class="subnavLink" href="./alerts.html">Alertes</a>
-    <a class="subnavLink" href="./ops.html">Ops</a>
-    <a class="subnavLink" href="./docs.html">Docs</a>
-    <a class="subnavLink" href="./tools.html">Outils</a>
-    <span class="subnavSpacer"></span>
-    <a class="subnavLink" href="./crm.html">CRM</a>
-    <a class="subnavLink" href="./b2b.html">B2B</a>
-    <a class="subnavLink" href="./rh.html">RH</a>
-    <a class="subnavLink" href="./finance.html">Compta</a>
-    <a class="subnavLink" href="./com.html">Com</a>
-    <a class="subnavLink" href="./gifts.html">Bons cadeaux</a>
-    <a class="subnavLink" href="./settings.html">Réglages</a>
-  </nav>
-
-  <!-- Main -->
   <main class="container">
-    <div class="pageHeader">
-      <h1>Dashboard direction & managers</h1>
-      <div class="muted">Dernière mise à jour : <span id="lastUpdate">—</span></div>
-    </div>
+    <nav class="nav">
+      <a class="nav-link" href="./index.html" data-nav="home">Dashboard</a>
+      <a class="nav-link" href="./ca.html" data-nav="ca">CA</a>
+      <a class="nav-link" href="./frequentation.html" data-nav="frequentation">Fréquentation</a>
+      <a class="nav-link" href="./alerts.html" data-nav="alerts">Alertes</a>
+      <a class="nav-link" href="./ops.html" data-nav="ops">Ops</a>
+      <a class="nav-link" href="./docs.html" data-nav="docs">Docs</a>
+      <a class="nav-link" href="./tools.html" data-nav="tools">Outils</a>
 
-    <section class="card">
-      <h2>Bienvenue à bord 🏴‍☠️</h2>
-      <p class="muted">Ceci est la homepage MVP : chiffres clés, alertes, opérations du jour, accès rapide.</p>
-    </section>
+      <span class="nav-sep"></span>
 
-    <!-- KPIs -->
-    <section class="grid3">
-      <div class="kpiCard">
-        <div class="kpiLabel">CA Jour</div>
-        <div class="kpiValue" id="kpi_ca_day">—</div>
+      <a class="nav-link" href="./crm.html" data-nav="crm">CRM</a>
+      <a class="nav-link" href="./b2b.html" data-nav="b2b">B2B</a>
+      <a class="nav-link" href="./rh.html" data-nav="rh">RH</a>
+      <a class="nav-link" href="./finance.html" data-nav="finance">Compta</a>
+      <a class="nav-link" href="./com.html" data-nav="com">Com</a>
+      <a class="nav-link" href="./gifts.html" data-nav="gifts">Bons cadeaux</a>
+      <a class="nav-link" href="./settings.html" data-nav="settings">Réglages</a>
+    </nav>
+
+    <section class="page">
+      <div class="page-head">
+        <h2 id="pageTitle">Dashboard direction & managers</h2>
+        <div class="muted">Dernière mise à jour : <strong id="lastUpdate">—</strong></div>
       </div>
 
-      <div class="kpiCard">
-        <div class="kpiLabel">Couverts Jour</div>
-        <div class="kpiValue" id="kpi_covers_day">—</div>
+      <div class="card" style="margin-bottom:16px;">
+        <div style="font-weight:800;color:var(--pp-navy);">Bienvenue à bord 🏴‍☠️</div>
+        <div class="muted" style="margin-top:6px;">
+          Ceci est la homepage MVP : chiffres clés, alertes, opérations du jour, accès rapide.
+        </div>
       </div>
 
-      <div class="kpiCard">
-        <div class="kpiLabel">Ticket moyen</div>
-        <div class="kpiValue" id="kpi_tm_day">—</div>
-      </div>
-    </section>
+      <div class="grid">
+        <!-- KPIs -->
+        <div class="card span-12">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:800;color:var(--pp-navy);">📌 Chiffres clés</div>
+              <div class="muted">Données chargées depuis <code>data/dashboard.json</code> (MVP).</div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <a class="btn" href="./ca.html">Voir page CA</a>
+              <a class="btn" href="./frequentation.html">Voir fréquentation</a>
+            </div>
+          </div>
 
-    <!-- Bloc chart + raccourcis -->
-    <section class="grid2">
-      <div class="card">
-        <h2>Évolution CA (exemple)</h2>
-        <p class="muted">Ce graphe sera branché ensuite à n8n. Pour l’instant, il peut rester vide.</p>
-        <canvas id="caChart" height="110"></canvas>
-      </div>
+          <div class="grid" style="margin-top:14px;">
+            <div class="card span-4" style="box-shadow:none;">
+              <div class="muted">CA jour</div>
+              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_ca_day">—</div>
+              <div class="muted" style="margin-top:6px;">Objectif : pilotage immédiat</div>
+            </div>
 
-      <div class="card">
-        <h2>Ops du jour ✅</h2>
-        <p class="muted">Checklists ouverture / service / fermeture</p>
-        <a class="btn" href="./ops.html">Ouvrir →</a>
-      </div>
-    </section>
+            <div class="card span-4" style="box-shadow:none;">
+              <div class="muted">Couverts jour</div>
+              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_covers_day">—</div>
+              <div class="muted" style="margin-top:6px;">Capacité & rythme service</div>
+            </div>
 
-    <section class="card">
-      <h2>Alertes prioritaires 🚨</h2>
-      <p class="muted">À brancher ensuite sur n8n</p>
-      <a class="btnSecondary" href="./alerts.html">Ouvrir →</a>
+            <div class="card span-4" style="box-shadow:none;">
+              <div class="muted">Ticket moyen jour</div>
+              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_tm_day">—</div>
+              <div class="muted" style="margin-top:6px;">Upsell desserts / boissons</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertes + Ops -->
+        <div class="card span-6">
+          <div style="font-weight:800;color:var(--pp-navy);">🚨 Alertes prioritaires</div>
+          <div class="muted" style="margin-top:8px;">À brancher ensuite sur n8n (liste + compteur).</div>
+          <div style="margin-top:12px;">
+            <a class="btn" href="./alerts.html">Ouvrir →</a>
+          </div>
+        </div>
+
+        <div class="card span-6">
+          <div style="font-weight:800;color:var(--pp-navy);">✅ Ops du jour</div>
+          <div class="muted" style="margin-top:8px;">Checklists ouverture / service / fermeture.</div>
+          <div style="margin-top:12px;">
+            <a class="btn primary" href="./ops.html">Ouvrir →</a>
+          </div>
+        </div>
+
+        <!-- Placeholder graphique -->
+        <div class="card span-12">
+          <div style="font-weight:800;color:var(--pp-navy);">📈 Évolution CA (placeholder)</div>
+          <div class="muted" style="margin-top:8px;">
+            On branchera le graphique plus tard via n8n (history). Pour l’instant on stabilise le MVP.
+          </div>
+
+          <div class="card" style="box-shadow:none;margin-top:12px;">
+            <div class="muted">Zone graphique (plus tard)</div>
+            <div style="height:220px;border:1px dashed var(--border);border-radius:12px;margin-top:10px;background:#fbfdff;"></div>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 </body>
