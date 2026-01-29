@@ -1,25 +1,165 @@
 <!doctype html>
 <html lang="fr">
 <head>
+  <!--
+  NOTES (V1) — INDEX UNIQUEMENT
+  - HOME “Pirates Paradise OS” (intranet).
+  - Utilise ton design system actuel (assets/app.css + assets/app.js).
+  - Ajoute un <style> “HOME ONLY” pour composants home (tuiles, chips, progress).
+  - Données mock dans MOCK_DATA (en bas) → facile à remplacer par fetch() ensuite.
+  -->
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pirates Paradise — Intranet • Dashboard</title>
+  <title>Pirates Paradise OS — Accueil</title>
 
-  <link rel="stylesheet" href="./assets/app.css?v=dark1">
-  <script src="./assets/app.js?v=dark1" defer></script>
+  <link rel="stylesheet" href="./assets/app.css?v=os1">
+  <script src="./assets/app.js?v=os1" defer></script>
+
+  <style>
+    /* === Helpers “home” (mobile-first) === */
+    .os-wrap{display:flex;flex-direction:column;gap:14px}
+    .os-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    .os-between{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+    .os-title{font-weight:950;letter-spacing:.2px;margin:0}
+    .os-hint{margin-top:6px}
+    .os-badge{
+      display:inline-flex;align-items:center;gap:6px;
+      font-size:12px;padding:4px 10px;border-radius:999px;
+      border:1px solid rgba(207,163,74,.22);
+      background:rgba(10,19,36,.45)
+    }
+    .os-chip{
+      display:inline-flex;align-items:center;gap:8px;
+      font-size:12px;padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(207,163,74,.16);
+      background:rgba(10,19,36,.35);color:rgba(234,240,255,.92);
+      cursor:pointer;text-decoration:none;
+    }
+    .os-chip:hover{border-color:rgba(207,163,74,.30);background:rgba(13,26,49,.45)}
+    .os-chip:focus{outline:3px solid rgba(207,163,74,.35);outline-offset:2px}
+
+    .os-grid{
+      display:grid;
+      grid-template-columns:repeat(12,1fr);
+      gap:14px;
+    }
+    .os-col-12{grid-column:span 12}
+    .os-col-6{grid-column:span 12}
+    .os-col-4{grid-column:span 12}
+    .os-col-3{grid-column:span 12}
+
+    .os-tile{
+      display:flex;flex-direction:column;gap:10px;
+      text-decoration:none;color:inherit;
+      border-radius:16px;
+      border:1px solid rgba(207,163,74,.16);
+      background:rgba(10,19,36,.35);
+      padding:14px;
+      transition:transform .08s ease,border-color .12s ease,background .12s ease;
+      min-height:92px;
+    }
+    .os-tile:hover{border-color:rgba(207,163,74,.32);background:rgba(13,26,49,.45)}
+    .os-tile:active{transform:translateY(1px)}
+    .os-tile:focus{outline:3px solid rgba(207,163,74,.35);outline-offset:2px}
+    .os-tile-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .os-tile-ttl{font-weight:950;letter-spacing:.2px}
+    .os-tile-sub{font-size:13px;color:rgba(159,176,207,.95);line-height:1.35}
+
+    .os-kpi{
+      padding:14px;border-radius:16px;
+      border:1px solid rgba(207,163,74,.14);
+      background:rgba(5,11,20,.30);
+      box-shadow:none;
+    }
+    .os-kpi-lbl{font-size:12px;color:rgba(159,176,207,.95)}
+    .os-kpi-val{font-size:28px;font-weight:950;margin-top:6px}
+    .os-kpi-meta{font-size:12px;color:rgba(159,176,207,.90);margin-top:6px}
+
+    .os-progress{
+      height:10px;border-radius:999px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(207,163,74,.16);
+      overflow:hidden;
+    }
+    .os-progress > div{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg, rgba(207,163,74,1), rgba(227,190,108,.9));
+      border-radius:999px;
+      transition:width .4s ease;
+    }
+
+    .os-feed{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+    .os-item{
+      border-radius:14px;
+      border:1px solid rgba(207,163,74,.14);
+      background:rgba(10,19,36,.28);
+      padding:12px;
+    }
+    .os-item-top{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .os-item-ttl{font-weight:900}
+    .os-item-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .os-tag{
+      font-size:11px;padding:3px 8px;border-radius:999px;
+      border:1px solid rgba(207,163,74,.18);
+      background:rgba(5,11,20,.25);
+      color:rgba(234,240,255,.92);
+      white-space:nowrap;
+    }
+    .os-date{font-size:11px;color:rgba(159,176,207,.95)}
+    .os-item-desc{font-size:13px;color:rgba(159,176,207,.95);margin-top:8px;line-height:1.35}
+    .os-item-link{display:inline-flex;margin-top:10px}
+
+    .os-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+    .os-doc{
+      display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;
+      padding:12px;border-radius:14px;border:1px solid rgba(207,163,74,.14);
+      background:rgba(10,19,36,.28)
+    }
+    .os-doc-left{display:flex;flex-direction:column;gap:6px}
+    .os-doc-ttl{font-weight:900}
+    .os-doc-meta{font-size:12px;color:rgba(159,176,207,.95)}
+
+    .os-links{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+    .os-link{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:12px;border-radius:14px;border:1px solid rgba(207,163,74,.14);
+      background:rgba(10,19,36,.28);text-decoration:none;color:inherit;
+    }
+    .os-link:hover{border-color:rgba(207,163,74,.30);background:rgba(13,26,49,.40)}
+    .os-link:focus{outline:3px solid rgba(207,163,74,.35);outline-offset:2px}
+    .os-link small{color:rgba(159,176,207,.95)}
+
+    .os-footer{
+      margin-top:18px;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid rgba(207,163,74,.12);
+      background:rgba(10,19,36,.22);
+      color:rgba(159,176,207,.95);
+      font-size:12px;
+      display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    }
+
+    /* Responsive desktop */
+    @media(min-width: 980px){
+      .os-col-6{grid-column:span 6}
+      .os-col-4{grid-column:span 4}
+      .os-col-3{grid-column:span 3}
+    }
+  </style>
 </head>
-
 <body data-page="home">
-  <!-- TOPBAR -->
+  <!-- HEADER STICKY -->
   <header class="topbar">
-    <!-- Ligne 1 : marque / logo centré / actions -->
     <div class="container topbar-inner" style="display:flex; align-items:center; gap:14px;">
       <!-- Gauche : marque -->
       <div class="brand" style="flex:1; min-width:220px;">
-        <div class="logo">PP</div>
+        <div class="logo" aria-hidden="true">PP</div>
         <div>
-          <div class="brand-title">Pirates Paradise — Intranet</div>
-          <div class="brand-sub" id="subtitle">Dashboard interne</div>
+          <div class="brand-title">Pirates Paradise OS</div>
+          <div class="brand-sub">Intranet direction & managers</div>
         </div>
       </div>
 
@@ -27,173 +167,465 @@
       <div style="flex:0 0 auto; display:flex; justify-content:center; align-items:center;">
         <img
           src="https://lille.pirates-paradise.fr/wp-content/uploads/2025/08/col.png"
-          alt="Pirates Paradise"
+          alt="Logo Pirates Paradise"
           style="height:42px; width:auto; display:block; filter:drop-shadow(0 10px 18px rgba(0,0,0,.35));"
         />
       </div>
 
-      <!-- Droite : actions -->
-      <div class="top-actions" style="flex:1; display:flex; justify-content:flex-end; gap:10px; align-items:center; min-width:220px;">
-        <select class="select" id="roleSelect">
-          <option value="manager">Manager</option>
-          <option value="direction">Direction</option>
-          <option value="salle">Salle</option>
-          <option value="bar">Bar</option>
-          <option value="cuisine">Cuisine</option>
-          <option value="event">Événementiel</option>
-          <option value="maintenance">Maintenance</option>
-        </select>
+      <!-- Droite : profil + aide (mock) -->
+      <div style="flex:1; min-width:220px; display:flex; justify-content:flex-end; align-items:center; gap:10px;">
+        <a class="btn" href="./docs.html" aria-label="Aide et documentation">❓ Aide</a>
 
-        <a class="btn" href="./ops.html">✅ Ops</a>
-        <a class="btn primary" href="./index.html">🏠 Dashboard</a>
+        <div class="os-badge" role="button" tabindex="0" aria-label="Profil utilisateur (mock)">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M12 12a4 4 0 1 0-4-4a4 4 0 0 0 4 4m0 2c-4.42 0-8 2-8 4.5V21h16v-2.5c0-2.5-3.58-4.5-8-4.5"/>
+          </svg>
+          <span id="mockUser">Manager</span>
+        </div>
       </div>
     </div>
 
-    <!-- Ligne 2 : barre d'onglets (comme ta photo) + bouton + -->
+    <!-- Navigation principale (stable) -->
     <div class="container" style="padding-top:10px; padding-bottom:10px;">
-      <div style="display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap;">
-        <!-- 4 onglets principaux -->
-        <a class="nav-link" href="./index.html" style="font-weight:800;">Actualités</a>
-        <a class="nav-link" href="./ops.html">Équipe</a>
-        <a class="nav-link" href="./docs.html">Ressources</a>
-        <a class="nav-link" href="./rh.html">Espace RH</a>
+      <nav aria-label="Navigation principale" class="os-row" style="justify-content:center;">
+        <a class="nav-link is-active" href="./index.html" aria-current="page">Accueil</a>
+        <a class="nav-link" href="./ca.html">Piloter le CA</a>
+        <a class="nav-link" href="./operations.html">Gérer les ops</a>
+        <a class="nav-link" href="./docs.html">Trouver un doc</a>
+        <a class="nav-link" href="./rh.html">Accéder RH</a>
 
-        <!-- Bouton + -->
         <button
           id="moreBtn"
           type="button"
           class="btn primary"
           aria-expanded="false"
           aria-controls="moreMenu"
-          style="border-radius:999px; padding:7px 12px;"
+          style="border-radius:999px; padding:8px 12px;"
         >＋</button>
-      </div>
+      </nav>
 
-      <!-- Menu du + (caché par défaut) -->
-      <div id="moreMenu" class="card" style="display:none; margin-top:12px; box-shadow:none;">
-        <div class="muted" style="margin-bottom:10px;">Autres pages</div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <a class="btn" href="./ca.html" style="border-radius:999px;">💰 CA</a>
-          <a class="btn" href="./frequentation.html" style="border-radius:999px;">👥 Fréquentation</a>
-          <a class="btn" href="./alerts.html" style="border-radius:999px;">🚨 Alertes</a>
-          <a class="btn" href="./ops.html" style="border-radius:999px;">✅ Ops</a>
-          <a class="btn" href="./tools.html" style="border-radius:999px;">🧰 Outils</a>
-          <a class="btn" href="./crm.html" style="border-radius:999px;">🧩 CRM</a>
-          <a class="btn" href="./b2b.html" style="border-radius:999px;">🤝 B2B</a>
-          <a class="btn" href="./rh.html" style="border-radius:999px;">🧑‍🤝‍🧑 RH</a>
-          <a class="btn" href="./finance.html" style="border-radius:999px;">🧾 Compta</a>
-          <a class="btn" href="./com.html" style="border-radius:999px;">📣 Com</a>
-          <a class="btn" href="./gifts.html" style="border-radius:999px;">🎁 Bons cadeaux</a>
-          <a class="btn" href="./settings.html" style="border-radius:999px;">⚙️ Réglages</a>
+      <!-- Menu secondaire -->
+      <div id="moreMenu" class="card" style="display:none; margin-top:12px; box-shadow:none;" role="region" aria-label="Menu secondaire">
+        <div class="muted">Raccourcis</div>
+        <div class="os-row" style="margin-top:10px;">
+          <a class="os-chip" href="./b2b.html">🤝 Suivre le B2B</a>
+          <a class="os-chip" href="./tools.html">🧰 Outils</a>
+          <a class="os-chip" href="./settings.html">⚙️ Réglages</a>
         </div>
       </div>
     </div>
 
-    <!-- Ligne 3 : recherche -->
+    <!-- Search UI + suggestions -->
     <div class="container" style="padding-bottom:14px;">
       <div class="search">
-        <div class="searchbox" style="width:100%;">
+        <div class="searchbox" style="width:100%;" role="search">
           🔎
-          <input id="searchInput" type="search" placeholder="Rechercher une procédure, une page, un outil…" />
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="Chercher une tâche, une procédure, un outil… (ex: “ouvrir checklist”, “incident”, “CA du jour”)"
+            aria-label="Recherche"
+            autocomplete="off"
+          />
           <span class="kbd">Entrée</span>
         </div>
+      </div>
+
+      <div class="os-row" style="justify-content:center; margin-top:10px;">
+        <span class="muted">Raccourcis :</span>
+        <a class="os-chip" href="./operations.html">Déclarer un incident</a>
+        <a class="os-chip" href="./operations.html">Ouvrir checklist ouverture</a>
+        <a class="os-chip" href="./docs.html">Trouver une procédure</a>
+        <a class="os-chip" href="./ca.html">Voir CA du jour</a>
       </div>
     </div>
   </header>
 
+  <!-- MAIN -->
   <main class="container">
-    <section class="page">
-      <div class="page-head">
-        <h2 id="pageTitle">Dashboard direction & managers</h2>
-        <div class="muted">Dernière mise à jour : <strong id="lastUpdate">—</strong></div>
-      </div>
-
-      <!-- WELCOME -->
-      <div class="card" style="margin-bottom:14px;">
-        <div style="font-weight:900; letter-spacing:.2px;">Bienvenue à bord 🏴‍☠️</div>
-        <div class="muted" style="margin-top:6px;">
-          Homepage MVP : chiffres clés + veille “restauration” + accès rapide.
+    <!-- HERO -->
+    <section class="card" aria-label="Résumé">
+      <div class="os-between">
+        <div>
+          <h1 class="os-title" style="font-size:22px;">Utile en 10 secondes.</h1>
+          <div class="muted os-hint">Choisis une action, vois les chiffres clés, puis passe à l’exécution.</div>
         </div>
-      </div>
-
-      <div class="grid">
-        <!-- KPIs -->
-        <div class="card span-12">
-          <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:10px; flex-wrap:wrap;">
-            <div>
-              <div style="font-weight:900; letter-spacing:.2px;">📌 Chiffres clés</div>
-              <div class="muted" style="margin-top:6px;">
-                Données chargées depuis <code>data/dashboard.json</code> (pour l’instant).
-              </div>
-            </div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <a class="btn" href="./ca.html">Voir page CA</a>
-              <a class="btn" href="./frequentation.html">Voir fréquentation</a>
-            </div>
-          </div>
-
-          <div class="grid" style="margin-top:14px;">
-            <div class="card span-4" style="box-shadow:none;">
-              <div class="muted">CA jour</div>
-              <div id="kpi_ca_day" style="font-size:28px; font-weight:950; margin-top:6px;">—</div>
-            </div>
-
-            <div class="card span-4" style="box-shadow:none;">
-              <div class="muted">Couverts jour</div>
-              <div id="kpi_covers_day" style="font-size:28px; font-weight:950; margin-top:6px;">—</div>
-            </div>
-
-            <div class="card span-4" style="box-shadow:none;">
-              <div class="muted">Ticket moyen jour</div>
-              <div id="kpi_tm_day" style="font-size:28px; font-weight:950; margin-top:6px;">—</div>
-            </div>
-          </div>
+        <div class="os-row">
+          <span class="os-badge" id="badgeToday" aria-label="Date du jour">📅 —</span>
+          <span class="os-badge" id="badgeStatus" aria-label="Statut du service">⚓ Service : —</span>
         </div>
-
-        <!-- VEILLE (placeholder) -->
-        <div class="card span-12">
-          <div style="font-weight:900; letter-spacing:.2px;">🗞️ Veille — actualités restauration</div>
-          <div class="muted" style="margin-top:8px;">
-            Ce bloc sera alimenté automatiquement (n8n) : sélection + résumé des actus du secteur.
-          </div>
-
-          <div class="grid" style="margin-top:14px;">
-            <div class="card span-6" style="box-shadow:none;">
-              <div style="font-weight:850;">Titre article #1 (exemple)</div>
-              <div class="muted" style="margin-top:6px;">Résumé 2–3 lignes (exemple).</div>
-            </div>
-
-            <div class="card span-6" style="box-shadow:none;">
-              <div style="font-weight:850;">Titre article #2 (exemple)</div>
-              <div class="muted" style="margin-top:6px;">Résumé 2–3 lignes (exemple).</div>
-            </div>
-          </div>
-        </div>
-
       </div>
     </section>
-  </main>
 
-  <!-- ✅ Script bouton + (au clic) -->
+    <!-- TODAY KPIs -->
+    <section class="card" aria-label="Aujourd'hui" style="margin-top:14px;">
+      <div class="os-between">
+        <div>
+          <h2 class="os-title" style="font-size:18px;">Aujourd’hui</h2>
+          <div class="muted os-hint">Vue rapide. (Les automatisations viendront ensuite.)</div>
+        </div>
+        <a class="btn" href="./ca.html" aria-label="Aller à la page chiffre d'affaires">Voir le détail →</a>
+      </div>
+
+      <div class="os-grid" style="margin-top:14px;">
+        <div class="os-kpi os-col-3">
+          <div class="os-kpi-lbl">CA jour</div>
+          <div class="os-kpi-val" id="kpiCa">—</div>
+          <div class="os-kpi-meta" id="kpiCaMeta">vs N-1 : —</div>
+        </div>
+
+        <div class="os-kpi os-col-3">
+          <div class="os-kpi-lbl">Couverts</div>
+          <div class="os-kpi-val" id="kpiCovers">—</div>
+          <div class="os-kpi-meta" id="kpiCoversMeta">vs N-1 : —</div>
+        </div>
+
+        <div class="os-kpi os-col-3">
+          <div class="os-kpi-lbl">Ticket moyen</div>
+          <div class="os-kpi-val" id="kpiTm">—</div>
+          <div class="os-kpi-meta" id="kpiTmMeta">objectif : —</div>
+        </div>
+
+        <div class="os-kpi os-col-3">
+          <div class="os-kpi-lbl">Objectif du jour</div>
+          <div class="os-kpi-val" id="kpiGoal">—</div>
+
+          <div class="os-progress" aria-label="Progression objectif" style="margin-top:10px;">
+            <div id="goalBar"></div>
+          </div>
+          <div class="os-kpi-meta" id="kpiGoalMeta" style="margin-top:8px;">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUICK ACTIONS -->
+    <section class="card" aria-label="Actions rapides" style="margin-top:14px;">
+      <div class="os-between">
+        <div>
+          <h2 class="os-title" style="font-size:18px;">Actions rapides</h2>
+          <div class="muted os-hint">Clique et exécute. (6–10 max, orienté tâches.)</div>
+        </div>
+        <span class="muted">Astuce : tout est accessible en 2 clics.</span>
+      </div>
+
+      <div class="os-grid" style="margin-top:14px;" id="quickActions">
+        <!-- injecté par JS -->
+      </div>
+    </section>
+
+    <!-- NEWS / ANNOUNCEMENTS -->
+    <section class="os-grid" style="margin-top:14px;" aria-label="Actualités et annonces">
+      <div class="card os-col-6" aria-label="Veille restauration">
+        <div class="os-between">
+          <div>
+            <h2 class="os-title" style="font-size:18px;">Veille — secteur restauration</h2>
+            <div class="muted os-hint">Titres courts + tags + résumé actionnable.</div>
+          </div>
+          <span class="os-badge" aria-label="Source mock">🧭 Mock</span>
+        </div>
+
+        <div class="os-feed" id="feedSector">
+          <!-- injecté par JS -->
+        </div>
+      </div>
+
+      <div class="card os-col-6" aria-label="Annonces internes">
+        <div class="os-between">
+          <div>
+            <h2 class="os-title" style="font-size:18px;">Annonces internes</h2>
+            <div class="muted os-hint">Ce qui compte maintenant (court, clair, daté).</div>
+          </div>
+          <a class="btn" href="./docs.html" aria-label="Voir l'espace ressources">Ressources →</a>
+        </div>
+
+        <div class="os-feed" id="feedInternal">
+          <!-- injecté par JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- RECENT DOCS + USEFUL LINKS -->
+    <section class="os-grid" style="margin-top:14px;" aria-label="Documents et liens">
+      <div class="card os-col-6" aria-label="Documents récents">
+        <div class="os-between">
+          <div>
+            <h2 class="os-title" style="font-size:18px;">Documents récents</h2>
+            <div class="muted os-hint">Accès direct aux derniers docs consultés/ajoutés.</div>
+          </div>
+          <a class="btn" href="./docs.html" aria-label="Aller à la base documentaire">Ouvrir la base →</a>
+        </div>
+
+        <div class="os-list" id="recentDocs">
+          <!-- injecté par JS -->
+        </div>
+      </div>
+
+      <div class="card os-col-6" aria-label="Liens utiles">
+        <div class="os-between">
+          <div>
+            <h2 class="os-title" style="font-size:18px;">Liens utiles</h2>
+            <div class="muted os-hint">Les outils du quotidien (1 clic).</div>
+          </div>
+          <span class="os-badge" aria-label="Section mock">🔗</span>
+        </div>
+
+        <div class="os-links" id="usefulLinks">
+          <!-- injecté par JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="os-footer" aria-label="Pied de page">
+      <div>Version : <strong id="osVersion">v0.1</strong> • Dernière MAJ : <strong id="osUpdated">—</strong></div>
+      <div>Contact : <a href="mailto:direction@pirates-paradise.fr" class="nav-link" style="padding:0;border:none;background:transparent;">Direction</a></div>
+    </footer>
+  </main>
+  <!-- HOME JS (mock) : plus tard on déplacera ça dans app.js commun -->
   <script>
     (function () {
-      const btn = document.getElementById('moreBtn');
-      const menu = document.getElementById('moreMenu');
-      if (!btn || !menu) return;
+      // =========================
+      // MOCK DATA (à remplacer par fetch JSON plus tard)
+      // =========================
+      const MOCK_DATA = {
+        meta: {
+          version: "v0.1",
+          updated_at: "2026-01-29",
+          service_status: "soir"
+        },
+        today: {
+          ca: 18581.37,
+          ca_vs_n1_pct: +8.2,
+          covers: 629,
+          covers_vs_n1_pct: -3.1,
+          ticket_avg: 27.15,
+          ticket_goal: 28.0,
+          goal_ca: 22000
+        },
+        quickActions: [
+          { title: "Voir le CA du jour", desc: "KPIs + tendances.", href: "./ca.html", icon: "chart" },
+          { title: "Ouvrir checklist ouverture", desc: "3 min pour être prêt.", href: "./operations.html#checklists", icon: "check" },
+          { title: "Déclarer un incident", desc: "Matériel / salle / sécurité.", href: "./operations.html#new-ticket", icon: "alert" },
+          { title: "Trouver une procédure", desc: "Recherche dans la base.", href: "./docs.html", icon: "doc" },
+          { title: "Accéder aux infos RH", desc: "Contacts + urgences.", href: "./rh.html", icon: "user" },
+          { title: "Publier une annonce", desc: "Message interne (mock).", href: "./docs.html#annonces", icon: "megaphone" },
+          { title: "Suivre une demande B2B", desc: "Pipeline simple.", href: "./b2b.html", icon: "briefcase" },
+          { title: "Outils rapides", desc: "Liens du quotidien.", href: "./tools.html", icon: "tools" }
+        ],
+        sectorNews: [
+          { title: "Tendance : menus plus courts, marges plus nettes", tag: "Tendance", date: "29 jan", summary: "Réduire la carte améliore la vitesse + réduit le gaspillage. Action : identifier 3 plats à rotation lente.", href: "#" },
+          { title: "Inflation : ajuster sans casser l’expérience", tag: "Éco", date: "28 jan", summary: "Les hausses passent mieux via bundles / menus. Action : tester 1 bundle “famille” + 1 upsell boisson.", href: "#" },
+          { title: "Sécurité : check ERP & signalisations", tag: "Règlement", date: "27 jan", summary: "Rappels sur affichages et dispositifs. Action : audit 15 min hebdo + registre simple.", href: "#" }
+        ],
+        internalAnnouncements: [
+          { title: "Brief pré-service", tag: "Aujourd’hui", date: "17:30", summary: "Point objectifs + zones à surveiller (rush).", href: "#" },
+          { title: "Maintenance : poignée porte cuisine", tag: "À faire", date: "Cette semaine", summary: "Ticket à ouvrir si pas déjà fait.", href: "./operations.html" },
+          { title: "Procédure : clôture de caisse", tag: "Procédure", date: "MAJ", summary: "Version simplifiée (2 pages).", href: "./docs.html" }
+        ],
+        recentDocs: [
+          { title: "Procédure — Ouverture salle", meta: "Checklist • MAJ 2026-01-20", href: "./docs.html" },
+          { title: "Procédure — Clôture caisse", meta: "Finance • MAJ 2026-01-25", href: "./docs.html" },
+          { title: "Plan d’animation — Semaine", meta: "Ops • MAJ 2026-01-27", href: "./docs.html" }
+        ],
+        usefulLinks: [
+          { title: "Zelty (caisse)", meta: "Accès outil", href: "#" },
+          { title: "Réservations", meta: "Accès outil", href: "#" },
+          { title: "Support technique", meta: "Contact / ticket", href: "./operations.html" }
+        ]
+      };
 
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const isOpen = menu.style.display === 'block';
-        menu.style.display = isOpen ? 'none' : 'block';
-        btn.setAttribute('aria-expanded', String(!isOpen));
-      });
+      // =========================
+      // UI Helpers
+      // =========================
+      function fmtEUR(n) {
+        try {
+          return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
+        } catch (_) {
+          return (Math.round(n * 100) / 100).toFixed(2) + " €";
+        }
+      }
 
-      document.addEventListener('click', (e) => {
-        if (menu.contains(e.target) || e.target === btn) return;
-        menu.style.display = 'none';
-        btn.setAttribute('aria-expanded', 'false');
-      });
+      function fmtPct(n) {
+        if (n === null || n === undefined) return "—";
+        const sign = n > 0 ? "+" : "";
+        return `${sign}${n.toFixed(1)}%`;
+      }
+
+      function escapeHTML(str) {
+        return String(str)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function iconSVG(name) {
+        const common = 'width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"';
+        switch (name) {
+          case "chart":
+            return `<svg ${common}><path fill="currentColor" d="M5 9h3v10H5zm5-4h3v14h-3zm5 7h3v7h-3zM4 21h16v2H4z"/></svg>`;
+          case "check":
+            return `<svg ${common}><path fill="currentColor" d="m9 16.2l-3.5-3.5L4 14.2l5 5l11-11l-1.5-1.5z"/></svg>`;
+          case "alert":
+            return `<svg ${common}><path fill="currentColor" d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>`;
+          case "doc":
+            return `<svg ${common}><path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm0 2l6 6h-6z"/></svg>`;
+          case "user":
+            return `<svg ${common}><path fill="currentColor" d="M12 12a4 4 0 1 0-4-4a4 4 0 0 0 4 4m0 2c-4.42 0-8 2-8 4.5V21h16v-2.5c0-2.5-3.58-4.5-8-4.5"/></svg>`;
+          case "megaphone":
+            return `<svg ${common}><path fill="currentColor" d="M3 11v2h2l7 4v-3.5L6 12l6-1.5V7L5 11H3zm14-4v10h2V7h-2z"/></svg>`;
+          case "briefcase":
+            return `<svg ${common}><path fill="currentColor" d="M10 4h4v2h-4V4zm-4 4h12a2 2 0 0 1 2 2v9H4v-9a2 2 0 0 1 2-2zm-2 11h16v2H4v-2z"/></svg>`;
+          case "tools":
+          default:
+            return `<svg ${common}><path fill="currentColor" d="M22 19l-6.3-6.3a5.5 5.5 0 0 1-7.3-7.3l3 3l2-2l-3-3a5.5 5.5 0 0 1 7.3 7.3L24 16z"/></svg>`;
+        }
+      }
+      // =========================
+      // Render
+      // =========================
+      function renderQuickActions(items) {
+        const el = document.getElementById("quickActions");
+        if (!el) return;
+        el.innerHTML = items.map(a => `
+          <a class="os-tile os-col-3" href="${escapeHTML(a.href)}" aria-label="${escapeHTML(a.title)}">
+            <div class="os-tile-top">
+              <div class="os-tile-ttl">${escapeHTML(a.title)}</div>
+              <div style="opacity:.9">${iconSVG(a.icon)}</div>
+            </div>
+            <div class="os-tile-sub">${escapeHTML(a.desc)}</div>
+          </a>
+        `).join("");
+      }
+
+      function renderFeed(elId, items) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+
+        if (!items || items.length === 0) {
+          el.innerHTML = `
+            <div class="os-item">
+              <div class="os-item-ttl">Rien à afficher</div>
+              <div class="os-item-desc">Aucune entrée pour le moment.</div>
+            </div>
+          `;
+          return;
+        }
+
+        el.innerHTML = items.map(it => `
+          <article class="os-item">
+            <div class="os-item-top">
+              <div class="os-item-ttl">${escapeHTML(it.title)}</div>
+              <div class="os-item-meta">
+                <span class="os-tag">${escapeHTML(it.tag)}</span>
+                <span class="os-date">${escapeHTML(it.date)}</span>
+              </div>
+            </div>
+            <div class="os-item-desc">${escapeHTML(it.summary)}</div>
+            <a class="btn os-item-link" href="${escapeHTML(it.href)}" aria-label="Ouvrir : ${escapeHTML(it.title)}">Ouvrir →</a>
+          </article>
+        `).join("");
+      }
+
+      function renderRecentDocs(items) {
+        const el = document.getElementById("recentDocs");
+        if (!el) return;
+
+        el.innerHTML = items.map(d => `
+          <div class="os-doc">
+            <div class="os-doc-left">
+              <div class="os-doc-ttl">${escapeHTML(d.title)}</div>
+              <div class="os-doc-meta">${escapeHTML(d.meta)}</div>
+            </div>
+            <a class="btn" href="${escapeHTML(d.href)}" aria-label="Ouvrir : ${escapeHTML(d.title)}">Ouvrir →</a>
+          </div>
+        `).join("");
+      }
+
+      function renderUsefulLinks(items) {
+        const el = document.getElementById("usefulLinks");
+        if (!el) return;
+
+        el.innerHTML = items.map(l => `
+          <a class="os-link" href="${escapeHTML(l.href)}" aria-label="Aller vers : ${escapeHTML(l.title)}">
+            <div>
+              <div style="font-weight:900;">${escapeHTML(l.title)}</div>
+              <small>${escapeHTML(l.meta)}</small>
+            </div>
+            <span class="os-tag">→</span>
+          </a>
+        `).join("");
+      }
+
+      function renderHome(data) {
+        // Date du jour (badge)
+        const d = new Date();
+        const fr = d.toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'short' });
+        const badgeToday = document.getElementById("badgeToday");
+        if (badgeToday) badgeToday.textContent = `📅 ${fr}`;
+
+        const badgeStatus = document.getElementById("badgeStatus");
+        if (badgeStatus) badgeStatus.textContent = `⚓ Service : ${data.meta.service_status}`;
+
+        // Footer meta
+        const v = document.getElementById("osVersion");
+        const u = document.getElementById("osUpdated");
+        if (v) v.textContent = data.meta.version;
+        if (u) u.textContent = data.meta.updated_at;
+
+        // KPIs
+        document.getElementById("kpiCa").textContent = fmtEUR(data.today.ca);
+        document.getElementById("kpiCaMeta").textContent = `vs N-1 : ${fmtPct(data.today.ca_vs_n1_pct)}`;
+
+        document.getElementById("kpiCovers").textContent = String(data.today.covers);
+        document.getElementById("kpiCoversMeta").textContent = `vs N-1 : ${fmtPct(data.today.covers_vs_n1_pct)}`;
+
+        document.getElementById("kpiTm").textContent = fmtEUR(data.today.ticket_avg);
+        document.getElementById("kpiTmMeta").textContent = `objectif : ${fmtEUR(data.today.ticket_goal)}`;
+
+        document.getElementById("kpiGoal").textContent = fmtEUR(data.today.goal_ca);
+        const pct = Math.max(0, Math.min(100, (data.today.ca / data.today.goal_ca) * 100));
+        document.getElementById("goalBar").style.width = pct.toFixed(0) + "%";
+        document.getElementById("kpiGoalMeta").textContent =
+          `${pct.toFixed(0)}% atteint • reste ${fmtEUR(Math.max(0, data.today.goal_ca - data.today.ca))}`;
+
+        // Sections
+        renderQuickActions(data.quickActions);
+        renderFeed("feedSector", data.sectorNews);
+        renderFeed("feedInternal", data.internalAnnouncements);
+        renderRecentDocs(data.recentDocs);
+        renderUsefulLinks(data.usefulLinks);
+      }
+
+      // =========================
+      // Interactions : bouton +
+      // =========================
+      function initMoreMenu() {
+        const btn = document.getElementById("moreBtn");
+        const menu = document.getElementById("moreMenu");
+        if (!btn || !menu) return;
+
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const isOpen = menu.style.display === "block";
+          menu.style.display = isOpen ? "none" : "block";
+          btn.setAttribute("aria-expanded", String(!isOpen));
+        });
+
+        document.addEventListener("click", (e) => {
+          if (e.target === btn || menu.contains(e.target)) return;
+          menu.style.display = "none";
+          btn.setAttribute("aria-expanded", "false");
+        });
+      }
+
+      // =========================
+      // Init
+      // =========================
+      initMoreMenu();
+      renderHome(MOCK_DATA);
     })();
   </script>
 </body>
