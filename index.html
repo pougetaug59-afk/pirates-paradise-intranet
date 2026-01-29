@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pirates Paradise — Intranet • Dashboard</title>
 
-  <!-- CSS versionné (évite les soucis de cache GitHub Pages) -->
+  <!-- CSS versionné (évite le cache GitHub Pages) -->
   <link rel="stylesheet" href="./assets/app.css?v=dark1">
-
   <!-- JS versionné -->
   <script src="./assets/app.js?v=dark1" defer></script>
 </head>
@@ -15,8 +14,9 @@
 <body data-page="home">
   <!-- TOPBAR -->
   <header class="topbar">
-    <div class="container topbar-inner">
-      <div class="brand">
+    <div class="container topbar-inner" style="display:flex; align-items:center; gap:14px;">
+      <!-- Gauche : marque -->
+      <div class="brand" style="flex:1; min-width:220px;">
         <div class="logo">PP</div>
         <div>
           <div class="brand-title">Pirates Paradise — Intranet</div>
@@ -24,15 +24,13 @@
         </div>
       </div>
 
-      <div class="search">
-        <div class="searchbox">
-          🔎
-          <input id="searchInput" type="search" placeholder="Rechercher une procédure, une page, un outil…" />
-          <span class="kbd">Entrée</span>
-        </div>
+      <!-- Milieu : logo centré (simple pour l’instant) -->
+      <div style="flex:0 0 auto; display:flex; justify-content:center; align-items:center;">
+        <div class="logo" style="width:46px; height:46px; border-radius:18px; font-size:16px;">PP</div>
       </div>
 
-      <div class="top-actions">
+      <!-- Droite : actions -->
+      <div class="top-actions" style="flex:1; display:flex; justify-content:flex-end; gap:10px; align-items:center; min-width:220px;">
         <select class="select" id="roleSelect">
           <option value="manager">Manager</option>
           <option value="direction">Direction</option>
@@ -47,10 +45,33 @@
         <a class="btn primary" href="./index.html">🏠 Dashboard</a>
       </div>
     </div>
+
+    <!-- Ligne 2 : recherche + gros boutons jolies (menu principal) -->
+    <div class="container" style="padding-top:10px; padding-bottom:14px;">
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <div class="search" style="flex:1; min-width:280px;">
+          <div class="searchbox" style="width:100%;">
+            🔎
+            <input id="searchInput" type="search" placeholder="Rechercher une procédure, une page, un outil…" />
+            <span class="kbd">Entrée</span>
+          </div>
+        </div>
+
+        <!-- Boutons “menu” (plus beaux que des liens bleus) -->
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a class="btn" href="./ca.html">💰 CA</a>
+          <a class="btn" href="./frequentation.html">👥 Fréquentation</a>
+          <a class="btn" href="./alerts.html">🚨 Alertes</a>
+          <a class="btn" href="./docs.html">📚 Docs</a>
+          <a class="btn" href="./tools.html">🧰 Outils</a>
+          <a class="btn" href="./settings.html">⚙️ Réglages</a>
+        </div>
+      </div>
+    </div>
   </header>
 
   <main class="container">
-    <!-- NAV -->
+    <!-- NAV (secondaire) -->
     <nav class="nav">
       <a class="nav-link" href="./index.html" data-nav="home">Dashboard</a>
       <a class="nav-link" href="./ca.html" data-nav="ca">CA</a>
@@ -79,10 +100,10 @@
       </div>
 
       <!-- WELCOME -->
-      <div class="card span-12" style="margin-bottom:14px;">
+      <div class="card" style="margin-bottom:14px;">
         <div style="font-weight:900; letter-spacing:.2px;">Bienvenue à bord 🏴‍☠️</div>
         <div class="muted" style="margin-top:6px;">
-          Homepage MVP : chiffres clés, alertes, opérations du jour, accès rapide.
+          Homepage MVP : chiffres clés, actus internes, photos, alertes, accès rapide.
         </div>
       </div>
 
@@ -124,7 +145,60 @@
           </div>
         </div>
 
-        <!-- ALERTES -->
+        <!-- ACTUALITÉS -->
+        <div class="card span-6">
+          <div style="font-weight:900; letter-spacing:.2px;">🗞️ Actualités</div>
+          <div class="muted" style="margin-top:8px;">
+            (Bloc “News” interne — on le branchera à n8n ensuite)
+          </div>
+
+          <div class="card" style="box-shadow:none; margin-top:12px;">
+            <div style="font-weight:850;">• Brief ouverture — 18h</div>
+            <div class="muted" style="margin-top:6px;">Rappel : check stock soft + préparation salle.</div>
+          </div>
+
+          <div class="card" style="box-shadow:none; margin-top:10px;">
+            <div style="font-weight:850;">• Animation du week-end</div>
+            <div class="muted" style="margin-top:6px;">Pirates en salle + micro-interactions (à confirmer).</div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <a class="btn" href="./docs.html">Voir notes & docs →</a>
+          </div>
+        </div>
+
+        <!-- PHOTOS -->
+        <div class="card span-6">
+          <div style="font-weight:900; letter-spacing:.2px;">📸 Photos récentes</div>
+          <div class="muted" style="margin-top:8px;">
+            (Galerie interne — on branchera ça à n8n / Drive plus tard)
+          </div>
+
+          <div class="grid" style="margin-top:12px;">
+            <div class="card span-6" style="box-shadow:none; padding:0; overflow:hidden;">
+              <div style="height:120px; background:rgba(255,255,255,.06); display:flex; align-items:center; justify-content:center;">
+                <span class="muted">Photo 1</span>
+              </div>
+            </div>
+            <div class="card span-6" style="box-shadow:none; padding:0; overflow:hidden;">
+              <div style="height:120px; background:rgba(255,255,255,.06); display:flex; align-items:center; justify-content:center;">
+                <span class="muted">Photo 2</span>
+              </div>
+            </div>
+            <div class="card span-6" style="box-shadow:none; padding:0; overflow:hidden;">
+              <div style="height:120px; background:rgba(255,255,255,.06); display:flex; align-items:center; justify-content:center;">
+                <span class="muted">Photo 3</span>
+              </div>
+            </div>
+            <div class="card span-6" style="box-shadow:none; padding:0; overflow:hidden;">
+              <div style="height:120px; background:rgba(255,255,255,.06); display:flex; align-items:center; justify-content:center;">
+                <span class="muted">Photo 4</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ALERTES + OPS -->
         <div class="card span-6">
           <div style="font-weight:900; letter-spacing:.2px;">🚨 Alertes prioritaires</div>
           <div class="muted" style="margin-top:8px;">
@@ -135,7 +209,6 @@
           </div>
         </div>
 
-        <!-- OPS -->
         <div class="card span-6">
           <div style="font-weight:900; letter-spacing:.2px;">✅ Ops du jour</div>
           <div class="muted" style="margin-top:8px;">
@@ -143,19 +216,6 @@
           </div>
           <div style="margin-top:12px;">
             <a class="btn primary" href="./ops.html">Ouvrir →</a>
-          </div>
-        </div>
-
-        <!-- PLACEHOLDER GRAPHIQUE (on le fera plus tard) -->
-        <div class="card span-12">
-          <div style="font-weight:900; letter-spacing:.2px;">📈 Évolution CA</div>
-          <div class="muted" style="margin-top:8px;">
-            Graphique à brancher ensuite via n8n (history). Pour l’instant : MVP stable.
-          </div>
-
-          <div class="card" style="box-shadow:none; margin-top:12px;">
-            <div class="muted">Zone graphique (plus tard)</div>
-            <div style="height:220px; border:1px dashed rgba(207,163,74,.25); border-radius:14px; margin-top:10px;"></div>
           </div>
         </div>
       </div>
