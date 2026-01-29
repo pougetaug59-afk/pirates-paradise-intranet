@@ -1,181 +1,937 @@
 <!doctype html>
 <html lang="fr">
 <head>
+  <!--
+  CA — Pirates Paradise OS (V1 BI avancée)
+  Objectif : page “direction / pilotage” très visuelle, avec filtres UI, KPIs, graphs, tableau vs N-1 + états (loading/empty/error).
+
+  Dépendances :
+  - assets/app.css (design system commun)
+  - assets/app.js (nav active + menu + search + data hook)
+  - Chart.js via CDN (uniquement sur cette page)
+  -->
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pirates Paradise — Intranet • CA</title>
-  <link rel="stylesheet" href="./assets/app.css">
-  <script src="./assets/app.js" defer></script>
+  <title>Pirates Paradise OS — Piloter le CA</title>
+
+  <link rel="stylesheet" href="./assets/app.css?v=os2">
+  <script src="./assets/app.js?v=os2" defer></script>
+
+  <!-- Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- CA ONLY -->
+  <style>
+    /* Fond légèrement “pilotage” (soft, premium) */
+    body{
+      background:
+        radial-gradient(1100px 620px at 20% -10%, rgba(207,163,74,.10), transparent 55%),
+        radial-gradient(900px 520px at 90% 0%, rgba(5,38,68,.40), transparent 60%),
+        #071326;
+    }
+
+    .os-gap-lg{ margin-top:18px; }
+    .os-section-pad{ padding:18px; }
+
+    .os-h1{
+      font-size:24px; line-height:1.15; margin:0;
+      font-weight:950; letter-spacing:.2px;
+    }
+    .os-h2{
+      font-size:18px; margin:0;
+      font-weight:950; letter-spacing:.2px;
+    }
+    .os-sub{
+      margin-top:8px;
+      color:rgba(180,195,222,.95);
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    /* Pills / tags */
+    .os-pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(207,163,74,.18);
+      background:rgba(10,19,36,.35);
+      color:rgba(234,240,255,.90);
+      font-size:12px; white-space:nowrap;
+    }
+    .os-tag{
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(207,163,74,.16);
+      background:rgba(5,11,20,.20);
+      color:rgba(234,240,255,.92);
+      white-space:nowrap;
+    }
+
+    /* Layout grid */
+    .os-grid{ display:grid; grid-template-columns:repeat(12,1fr); gap:14px; }
+    .os-col-12{ grid-column:span 12; }
+    .os-col-6{ grid-column:span 12; }
+    .os-col-4{ grid-column:span 12; }
+    .os-col-3{ grid-column:span 12; }
+
+    @media(min-width:980px){
+      .os-col-6{ grid-column:span 6; }
+      .os-col-4{ grid-column:span 4; }
+      .os-col-3{ grid-column:span 3; }
+    }
+
+    /* Soft card (cohérent avec index) */
+    .os-card-soft{
+      border:1px solid rgba(207,163,74,.14);
+      background:rgba(10,19,36,.30);
+      border-radius:16px;
+      padding:16px;
+      box-shadow:none;
+    }
+
+    /* KPI mini-cards */
+    .os-kpi{
+      border:1px solid rgba(207,163,74,.14);
+      background:rgba(7,19,38,.28);
+      border-radius:16px;
+      padding:14px;
+      box-shadow:none;
+    }
+    .os-kpi-label{ color:rgba(180,195,222,.98); font-size:12px; }
+    .os-kpi-value{ font-size:26px; font-weight:950; margin-top:6px; }
+    .os-kpi-meta{ color:rgba(180,195,222,.92); font-size:12px; margin-top:6px; }
+
+    /* Filters bar */
+    .os-filters{
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center; justify-content:space-between;
+      margin-top:12px;
+    }
+    .os-filter-group{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    }
+    .os-select, .os-input{
+      appearance:none;
+      border:1px solid rgba(207,163,74,.14);
+      background:rgba(10,19,36,.24);
+      color:rgba(234,240,255,.92);
+      border-radius:12px;
+      padding:10px 12px;
+      min-height:40px;
+    }
+    .os-select:focus-visible, .os-input:focus-visible{
+      outline:3px solid rgba(207,163,74,.35);
+      outline-offset:2px;
+    }
+    .os-select{
+      padding-right:34px;
+      background-image:
+        linear-gradient(45deg, transparent 50%, rgba(234,240,255,.75) 50%),
+        linear-gradient(135deg, rgba(234,240,255,.75) 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) 16px,
+        calc(100% - 13px) 16px;
+      background-size:5px 5px, 5px 5px;
+      background-repeat:no-repeat;
+    }
+
+    /* Chart blocks */
+    .os-chart-wrap{
+      border:1px solid rgba(207,163,74,.14);
+      background:rgba(7,19,38,.22);
+      border-radius:16px;
+      padding:14px;
+      box-shadow:none;
+      height: 270px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .os-chart-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .os-chart-title{
+      font-weight:950;
+      letter-spacing:.2px;
+      font-size:13px;
+      color:rgba(234,240,255,.95);
+    }
+    .os-chart-sub{
+      font-size:12px;
+      color:rgba(180,195,222,.92);
+      margin-top:4px;
+    }
+    .os-canvas{
+      width:100% !important;
+      height: 200px !important;
+      display:block;
+    }
+
+    /* Secondary chart smaller */
+    .os-chart-wrap.sm{
+      height: 250px;
+    }
+    .os-canvas.sm{
+      height: 170px !important;
+    }
+
+    /* Table */
+    .os-table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:12px;
+      overflow:hidden;
+      border-radius:14px;
+      border:1px solid rgba(207,163,74,.12);
+      background:rgba(10,19,36,.22);
+    }
+    .os-table th, .os-table td{
+      padding:10px 10px;
+      border-bottom:1px solid rgba(207,163,74,.10);
+      font-size:13px;
+      text-align:left;
+      vertical-align:top;
+    }
+    .os-table th{
+      font-size:12px;
+      color:rgba(180,195,222,.95);
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+    .os-table td{
+      color:rgba(234,240,255,.92);
+    }
+
+    .os-num{ text-align:right; white-space:nowrap; }
+    .os-badge-good{
+      border:1px solid rgba(78, 203, 130, .25);
+      background:rgba(78, 203, 130, .10);
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .os-badge-bad{
+      border:1px solid rgba(255, 110, 110, .25);
+      background:rgba(255, 110, 110, .10);
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    /* States (loading/empty/error) */
+    .os-state{
+      border:1px dashed rgba(207,163,74,.22);
+      background:rgba(10,19,36,.20);
+      border-radius:16px;
+      padding:16px;
+      color:rgba(180,195,222,.95);
+      margin-top:14px;
+    }
+    .os-skel{
+      display:grid;
+      grid-template-columns:repeat(12,1fr);
+      gap:14px;
+      margin-top:12px;
+    }
+    .os-skel .b{
+      height:92px;
+      border-radius:16px;
+      border:1px solid rgba(207,163,74,.10);
+      background:linear-gradient(90deg, rgba(10,19,36,.18), rgba(13,26,49,.28), rgba(10,19,36,.18));
+      background-size: 200% 100%;
+      animation: shimmer 1.2s linear infinite;
+    }
+    @keyframes shimmer{
+      0%{ background-position: 0% 0%; }
+      100%{ background-position: 200% 0%; }
+    }
+
+    /* Footer (même logique que home) */
+    .os-footer{
+      margin-top:18px;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid rgba(207,163,74,.12);
+      background:rgba(10,19,36,.18);
+      color:rgba(180,195,222,.92);
+      font-size:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .os-footer-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+
+    /* Mobile safe */
+    @media(max-width:900px){
+      .search{ display:none; }
+    }
+  </style>
 </head>
 
 <body data-page="ca">
+
+  <!-- HEADER STICKY -->
   <header class="topbar">
-    <div class="container topbar-inner">
-      <div class="brand">
-        <div class="logo">PP</div>
+    <div class="container topbar-inner" style="display:flex; align-items:center; gap:14px;">
+      <!-- Gauche : marque -->
+      <div class="brand" style="flex:1; min-width:220px;">
+        <div class="logo" aria-hidden="true">PP</div>
         <div>
-          <div class="brand-title">Pirates Paradise — Intranet</div>
-          <div class="brand-sub" id="subtitle">—</div>
+          <div class="brand-title">Pirates Paradise OS</div>
+          <div class="brand-sub" id="subtitle">Piloter le CA & la fréquentation</div>
         </div>
       </div>
 
+      <!-- Centre : logo image -->
+      <div style="flex:0 0 auto; display:flex; justify-content:center; align-items:center;">
+        <img
+          src="https://lille.pirates-paradise.fr/wp-content/uploads/2025/08/col.png"
+          alt="Logo Pirates Paradise"
+          style="height:42px; width:auto; display:block; filter:drop-shadow(0 10px 18px rgba(0,0,0,.35));"
+        />
+      </div>
+
+      <!-- Droite : profil + aide (mock) -->
+      <div style="flex:1; min-width:220px; display:flex; justify-content:flex-end; align-items:center; gap:10px;">
+        <a class="btn" href="./docs.html" aria-label="Aide et documentation">❓ Aide</a>
+
+        <div class="os-pill" role="button" tabindex="0" aria-label="Profil utilisateur (mock)">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M12 12a4 4 0 1 0-4-4a4 4 0 0 0 4 4m0 2c-4.42 0-8 2-8 4.5V21h16v-2.5c0-2.5-3.58-4.5-8-4.5"/>
+          </svg>
+          <span id="mockUser">Manager</span>
+          <span class="os-tag" aria-label="Mode démo">Demo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation principale (stable) -->
+    <div class="container" style="padding-top:10px; padding-bottom:10px;">
+      <nav aria-label="Navigation principale" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; align-items:center;">
+        <a class="nav-link" href="./index.html">Accueil</a>
+        <a class="nav-link is-active" href="./ca.html" aria-current="page">Piloter le CA</a>
+        <a class="nav-link" href="./operations.html">Gérer les ops</a>
+        <a class="nav-link" href="./docs.html">Trouver un doc</a>
+        <a class="nav-link" href="./rh.html">Accéder RH</a>
+
+        <button
+          id="moreBtn"
+          type="button"
+          class="btn primary"
+          aria-expanded="false"
+          aria-controls="moreMenu"
+          style="border-radius:999px; padding:8px 12px;"
+        >＋</button>
+      </nav>
+
+      <!-- Menu secondaire -->
+      <div id="moreMenu" class="card" style="display:none; margin-top:12px; box-shadow:none;" role="region" aria-label="Menu secondaire">
+        <div class="muted">Raccourcis</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+          <a class="os-pill" href="./b2b.html">🤝 Suivre le B2B</a>
+          <a class="os-pill" href="./tools.html">🧰 Outils</a>
+          <a class="os-pill" href="./settings.html">⚙️ Réglages</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search UI -->
+    <div class="container" style="padding-bottom:14px;">
       <div class="search">
-        <div class="searchbox">
+        <div class="searchbox" style="width:100%;" role="search">
           🔎
-          <input id="searchInput" type="search" placeholder="Rechercher une procédure, une page, un outil…" />
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="Chercher : “semaine”, “N-1”, “ticket moyen”, “couverts”…"
+            aria-label="Recherche"
+            autocomplete="off"
+          />
           <span class="kbd">Entrée</span>
         </div>
-      </div>
-
-      <div class="top-actions">
-        <select class="select" id="roleSelect">
-          <option value="manager">Manager</option>
-          <option value="direction">Direction</option>
-          <option value="salle">Salle</option>
-          <option value="bar">Bar</option>
-          <option value="cuisine">Cuisine</option>
-          <option value="event">Événementiel</option>
-          <option value="maintenance">Maintenance</option>
-        </select>
-
-        <a class="btn" href="./ops.html">✅ Ops</a>
-        <a class="btn primary" href="./index.html">🏠 Dashboard</a>
       </div>
     </div>
   </header>
 
+  <!-- MAIN -->
   <main class="container">
-    <nav class="nav">
-      <a class="nav-link" href="./index.html" data-nav="home">Dashboard</a>
-      <a class="nav-link" href="./ca.html" data-nav="ca">CA</a>
-      <a class="nav-link" href="./frequentation.html" data-nav="frequentation">Fréquentation</a>
-      <a class="nav-link" href="./alerts.html" data-nav="alerts">Alertes</a>
-      <a class="nav-link" href="./ops.html" data-nav="ops">Ops</a>
-      <a class="nav-link" href="./docs.html" data-nav="docs">Docs</a>
-      <a class="nav-link" href="./tools.html" data-nav="tools">Outils</a>
 
-      <span class="nav-sep"></span>
-
-      <a class="nav-link" href="./crm.html" data-nav="crm">CRM</a>
-      <a class="nav-link" href="./b2b.html" data-nav="b2b">B2B</a>
-      <a class="nav-link" href="./rh.html" data-nav="rh">RH</a>
-      <a class="nav-link" href="./finance.html" data-nav="finance">Compta</a>
-      <a class="nav-link" href="./com.html" data-nav="com">Com</a>
-      <a class="nav-link" href="./gifts.html" data-nav="gifts">Bons cadeaux</a>
-      <a class="nav-link" href="./settings.html" data-nav="settings">Réglages</a>
-    </nav>
-
-    <section class="page">
-      <div class="page-head">
-        <h2 id="pageTitle">Analytics • Chiffre d’affaires</h2>
-        <div class="muted">Dernière mise à jour : <strong id="lastUpdate">—</strong></div>
-      </div>
-
-      <!-- Header actions -->
-      <div class="card" style="margin-bottom:16px;">
-        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;">
-          <div>
-            <div style="font-weight:800;color:var(--pp-navy);">Objectif</div>
-            <div class="muted" style="margin-top:6px;">
-              Suivre le CA jour / semaine / mois, détecter les écarts, et piloter la journée (ticket moyen, couverts, upsell).
-            </div>
-          </div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <a class="btn" href="./alerts.html">🚨 Alertes</a>
-            <a class="btn" href="./ops.html">✅ Ops</a>
-            <a class="btn" href="./docs.html">📚 Procédures</a>
-            <a class="btn" href="./tools.html">🧰 Outils</a>
-          </div>
+    <!-- HERO -->
+    <section class="os-card-soft os-section-pad" aria-label="Résumé CA">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+        <div>
+          <h1 class="os-h1">Piloter le CA</h1>
+          <div class="os-sub">KPIs, tendances, comparatifs N-1, répartition. (BI avancée — demo)</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <span class="os-pill" id="badgePeriod" aria-label="Période">📅 —</span>
+          <span class="os-pill" id="badgeSource" aria-label="Source">🧭 Demo</span>
         </div>
       </div>
 
-      <!-- KPI grid -->
-      <div class="grid">
-        <div class="card span-12">
-          <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap;">
-            <div>
-              <div style="font-weight:800;color:var(--pp-navy);">📌 KPIs CA</div>
-              <div class="muted">MVP : On branche cette page à l’endpoint n8n <code>/pp/ca</code> ensuite.</div>
-            </div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button class="btn" type="button" disabled>Exporter CSV (plus tard)</button>
-              <button class="btn" type="button" disabled>Changer période (plus tard)</button>
-            </div>
-          </div>
+      <!-- Filters -->
+      <div class="os-filters" aria-label="Filtres">
+        <div class="os-filter-group">
+          <label class="os-tag" for="f_period">Période</label>
+          <select class="os-select" id="f_period" aria-label="Choisir la période">
+            <option value="day">Jour</option>
+            <option value="week" selected>Semaine</option>
+            <option value="month">Mois</option>
+          </select>
 
-          <div class="grid" style="margin-top:14px;">
-            <div class="card span-4" style="box-shadow:none;">
-              <div class="muted">CA jour</div>
-              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_ca_day">—</div>
-              <div class="muted" style="margin-top:6px;">Vs N-1 / tendance (à afficher ici)</div>
-            </div>
+          <label class="os-tag" for="f_restaurant">Site</label>
+          <select class="os-select" id="f_restaurant" aria-label="Choisir le restaurant">
+            <option value="lille" selected>Lille</option>
+            <option value="all">Tous (demo)</option>
+          </select>
 
-            <div class="card span-4" style="box-shadow:none;">
-              <div class="muted">CA semaine (WTD)</div>
-              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_ca_wtd">—</div>
-              <div class="muted" style="margin-top:6px;">Cumul semaine</div>
-            </div>
-
-            <div class="card span-4" style="box-shadow:none;">
-              <div class="muted">CA mois (MTD)</div>
-              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_ca_mtd">—</div>
-              <div class="muted" style="margin-top:6px;">Cumul mois</div>
-            </div>
-
-            <div class="card span-6" style="box-shadow:none;">
-              <div class="muted">Couverts jour</div>
-              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_covers_day">—</div>
-              <div class="muted" style="margin-top:6px;">Contexte service / capacité</div>
-            </div>
-
-            <div class="card span-6" style="box-shadow:none;">
-              <div class="muted">Ticket moyen jour</div>
-              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_tm_day">—</div>
-              <div class="muted" style="margin-top:6px;">Aide : upsell desserts / boissons</div>
-            </div>
-
-            <div class="card span-12" style="box-shadow:none;">
-              <div class="muted">Focus du jour</div>
-              <div style="font-size:16px;font-weight:900;margin-top:6px;" id="kpi_focus">—</div>
-              <div class="muted" style="margin-top:6px;">Recommandation (à enrichir ensuite via n8n)</div>
-            </div>
-          </div>
+          <label class="os-tag" for="f_compare">Comparaison</label>
+          <select class="os-select" id="f_compare" aria-label="Choisir la comparaison">
+            <option value="n1" selected>vs N-1</option>
+            <option value="n2">vs N-2 (demo)</option>
+            <option value="none">Aucune</option>
+          </select>
         </div>
 
-        <!-- Trend placeholder -->
-        <div class="card span-12">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-            <div>
-              <div style="font-weight:800;color:var(--pp-navy);">📈 Tendance CA (placeholder)</div>
-              <div class="muted">On ajoutera le graphique CA vs N-1 après. Pour l’instant on termine l’arborescence + pages vivantes.</div>
-            </div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button class="btn" type="button" disabled>7j</button>
-              <button class="btn" type="button" disabled>30j</button>
-              <button class="btn" type="button" disabled>YTD</button>
-            </div>
-          </div>
-
-          <div class="card" style="box-shadow:none;margin-top:12px;">
-            <div class="muted">Zone graphique (à brancher plus tard)</div>
-            <div style="height:220px;border:1px dashed var(--border);border-radius:12px;margin-top:10px;background:#fbfdff;"></div>
-            <div class="muted" style="margin-top:10px;">Quand on activera le graphe : données <code>history</code> + sélecteur de période.</div>
-          </div>
-        </div>
-
-        <!-- Next actions -->
-        <div class="card span-12">
-          <div style="font-weight:800;color:var(--pp-navy);">➡️ Prochaines améliorations (après MVP)</div>
-          <ul class="muted" style="margin:10px 0 0 0; padding-left:18px;">
-            <li>Graph CA vs N-1 + presets (7j/30j/YTD)</li>
-            <li>Table “Top / Flop jours”</li>
-            <li>Alertes automatiques (baisse CA, anomalie ticket moyen)</li>
-            <li>Export CSV / PDF pour direction</li>
-          </ul>
+        <div class="os-filter-group">
+          <button class="btn" id="btnReload" type="button" aria-label="Recharger les données">🔄 Recharger</button>
+          <button class="btn" id="btnState" type="button" aria-label="Changer l’état (demo)">🧪 État: <span id="stateLabel">OK</span></button>
         </div>
       </div>
     </section>
+
+    <!-- STATES (demo) -->
+    <section id="stateBox" class="os-state hidden" aria-label="État">
+      <div style="font-weight:900; letter-spacing:.2px;" id="stateTitle">—</div>
+      <div style="margin-top:6px;" id="stateMsg">—</div>
+
+      <div class="os-skel" id="skeleton" aria-label="Chargement" style="display:none;">
+        <div class="b os-col-3"></div>
+        <div class="b os-col-3"></div>
+        <div class="b os-col-3"></div>
+        <div class="b os-col-3"></div>
+        <div class="b os-col-6" style="height:220px;"></div>
+        <div class="b os-col-6" style="height:220px;"></div>
+      </div>
+    </section>
+
+    <!-- KPIs -->
+    <section class="os-card-soft os-section-pad os-gap-lg" aria-label="KPIs">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+        <div>
+          <h2 class="os-h2">KPIs</h2>
+          <div class="os-sub">Lecture rapide + écarts vs comparaison sélectionnée.</div>
+        </div>
+        <span class="os-tag">Demo</span>
+      </div>
+
+      <div class="os-grid" style="margin-top:14px;">
+        <div class="os-kpi os-col-3">
+          <div class="os-kpi-label">CA (période)</div>
+          <div class="os-kpi-value" id="kpi_ca">—</div>
+          <div class="os-kpi-meta" id="kpi_ca_meta">vs N-1 : —</div>
+        </div>
+
+        <div class="os-kpi os-col-3">
+          <div class="os-kpi-label">Couverts (période)</div>
+          <div class="os-kpi-value" id="kpi_cov">—</div>
+          <div class="os-kpi-meta" id="kpi_cov_meta">vs N-1 : —</div>
+        </div>
+
+        <div class="os-kpi os-col-3">
+          <div class="os-kpi-label">Ticket moyen</div>
+          <div class="os-kpi-value" id="kpi_tm">—</div>
+          <div class="os-kpi-meta" id="kpi_tm_meta">objectif : —</div>
+        </div>
+
+        <div class="os-kpi os-col-3">
+          <div class="os-kpi-label">Objectif CA</div>
+          <div class="os-kpi-value" id="kpi_goal">—</div>
+          <div class="os-kpi-meta" id="kpi_goal_meta">atteint : —</div>
+          <div class="os-progress" aria-label="Progression objectif">
+            <div id="goalBar"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- GRAPHS -->
+    <section class="os-grid os-gap-lg" aria-label="Graphiques">
+      <!-- Trend line -->
+      <div class="os-chart-wrap os-col-8" aria-label="Tendance CA">
+        <div class="os-chart-head">
+          <div>
+            <div class="os-chart-title">Tendance CA — période</div>
+            <div class="os-chart-sub">Courbe + comparaison (si activée). Discret, sans légende lourde.</div>
+          </div>
+          <span class="os-tag">Demo</span>
+        </div>
+        <canvas id="chartTrend" class="os-canvas" aria-label="Graphique tendance CA"></canvas>
+      </div>
+
+      <!-- Donut -->
+      <div class="os-chart-wrap sm os-col-4" aria-label="Répartition CA">
+        <div class="os-chart-head">
+          <div>
+            <div class="os-chart-title">Répartition CA</div>
+            <div class="os-chart-sub">Bar / Cuisine / Events</div>
+          </div>
+          <span class="os-tag">Demo</span>
+        </div>
+        <canvas id="chartSplit" class="os-canvas sm" aria-label="Graphique répartition CA"></canvas>
+      </div>
+
+      <!-- Bar: weekday performance -->
+      <div class="os-chart-wrap os-col-12" aria-label="Performance par jour">
+        <div class="os-chart-head">
+          <div>
+            <div class="os-chart-title">Performance — par jour (semaine)</div>
+            <div class="os-chart-sub">Comparaison simple des jours (utile pour décision planning / animation).</div>
+          </div>
+          <span class="os-tag">Demo</span>
+        </div>
+        <canvas id="chartWeekdays" class="os-canvas" aria-label="Graphique performance par jour"></canvas>
+      </div>
+    </section>
+
+    <!-- TABLEAU COMPARATIF -->
+    <section class="os-card-soft os-section-pad os-gap-lg" aria-label="Tableau comparatif">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+        <div>
+          <h2 class="os-h2">Comparatif vs N-1</h2>
+          <div class="os-sub">Synthèse actionnable : where to focus.</div>
+        </div>
+        <span class="os-tag">Demo</span>
+      </div>
+
+      <table class="os-table" aria-label="Tableau comparatif CA">
+        <thead>
+          <tr>
+            <th>Indicateur</th>
+            <th class="os-num">Période</th>
+            <th class="os-num">N-1</th>
+            <th class="os-num">Écart</th>
+            <th>Lecture</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- injecté par JS -->
+        </tbody>
+      </table>
+
+      <div class="os-sub" style="margin-top:12px;">
+        Astuce : si l’écart CA est négatif mais le ticket moyen monte, alors ton levier est souvent la fréquentation (couverts).
+      </div>
+    </section>
+
+    <!-- FOOTER : Support intranet -->
+    <footer class="os-footer" aria-label="Pied de page">
+      <div>
+        <div style="font-weight:900; letter-spacing:.2px;">Support intranet : Augustin (Admin OS)</div>
+        <div style="margin-top:4px;">
+          Version : <strong id="osVersion">v0.2</strong> • Dernière MAJ : <strong id="osUpdated">—</strong>
+        </div>
+      </div>
+
+      <div class="os-footer-actions" aria-label="Actions support">
+        <a
+          class="btn"
+          href="mailto:augustin@pirates-paradise.fr?subject=Bug%20intranet%20Pirates%20Paradise%20OS"
+          aria-label="Signaler un bug par email"
+        >🐛 Signaler un bug</a>
+
+        <a
+          class="btn primary"
+          href="mailto:augustin@pirates-paradise.fr?subject=Demande%20d%E2%80%99acc%C3%A8s%20intranet"
+          aria-label="Demander un accès par email"
+        >🔐 Demander un accès</a>
+      </div>
+    </footer>
+
   </main>
+
+  <!-- CA JS (mock + états + charts) -->
+  <script>
+    (function () {
+      // =========================
+      // MOCK DATA (remplaçable plus tard par fetch)
+      // =========================
+      const MOCK = {
+        meta: { version: "v0.2", updated_at: "2026-01-29", source: "Demo" },
+        periods: {
+          day: {
+            label: "Aujourd’hui",
+            ca: 18581.37, ca_n1: 17172.40,
+            covers: 629, covers_n1: 649,
+            tm: 27.15, tm_goal: 28.00,
+            goal_ca: 22000
+          },
+          week: {
+            label: "Semaine (à date)",
+            ca: 7317.84, ca_n1: 6027.83,
+            covers: 264, covers_n1: 241,
+            tm: 27.72, tm_goal: 28.00,
+            goal_ca: 8500
+          },
+          month: {
+            label: "Mois (à date)",
+            ca: 208889.09, ca_n1: 226399.04,
+            covers: 7550, covers_n1: 7920,
+            tm: 27.67, tm_goal: 28.00,
+            goal_ca: 230000
+          }
+        },
+
+        // Courbes (ex. semaine)
+        series: {
+          day: {
+            labels: ["12h","13h","14h","15h","16h","17h","18h","19h","20h","21h","22h"],
+            ca:     [420,  980,  1210, 870, 620, 740, 1100, 2650, 5200, 4280, 1530],
+            ca_n1:  [380,  910,  1090, 920, 600, 690, 980,  2400, 4900, 4000, 1410]
+          },
+          week: {
+            labels: ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"],
+            ca:     [920,  1010, 1150, 980, 1420, 1850, 1988],
+            ca_n1:  [840,  920,  1080, 940, 1280, 1750, 1258]
+          },
+          month: {
+            labels: ["S1","S2","S3","S4"],
+            ca:     [52000, 58000, 51000, 48889],
+            ca_n1:  [56000, 60000, 54000, 56399]
+          }
+        },
+
+        // Répartition CA
+        split: { labels: ["Bar", "Cuisine", "Events"], values: [34, 56, 10] }
+      };
+
+      // =========================
+      // Utils
+      // =========================
+      const $ = (s) => document.querySelector(s);
+
+      function fmtEUR(n){
+        return new Intl.NumberFormat("fr-FR", { style:"currency", currency:"EUR" }).format(Number(n));
+      }
+      function fmtNum(n){
+        return new Intl.NumberFormat("fr-FR").format(Number(n));
+      }
+      function pct(a, b){
+        if (!b) return 0;
+        return ((a - b) / b) * 100;
+      }
+      function fmtPct(n){
+        const sign = n > 0 ? "+" : "";
+        return `${sign}${n.toFixed(1)}%`;
+      }
+
+      // =========================
+      // State machine (OK / LOADING / EMPTY / ERROR)
+      // =========================
+      const STATES = ["OK","LOADING","EMPTY","ERROR"];
+      let stateIndex = 0;
+
+      function setState(s){
+        const box = $("#stateBox");
+        const skel = $("#skeleton");
+        const title = $("#stateTitle");
+        const msg = $("#stateMsg");
+
+        $("#stateLabel").textContent = s;
+
+        if (s === "OK") {
+          box.classList.add("hidden");
+          skel.style.display = "none";
+          return;
+        }
+
+        box.classList.remove("hidden");
+
+        if (s === "LOADING"){
+          title.textContent = "Chargement…";
+          msg.textContent = "On récupère les données (demo).";
+          skel.style.display = "grid";
+        } else if (s === "EMPTY"){
+          title.textContent = "Aucune donnée pour cette période.";
+          msg.textContent = "Vérifie les filtres, ou attends l’alimentation automatique.";
+          skel.style.display = "none";
+        } else if (s === "ERROR"){
+          title.textContent = "Erreur de données.";
+          msg.textContent = "Source indisponible (demo). Réessaie plus tard.";
+          skel.style.display = "none";
+        }
+      }
+
+      // =========================
+      // Charts
+      // =========================
+      let trendChart = null;
+      let splitChart = null;
+      let weekdaysChart = null;
+
+      function destroyCharts(){
+        [trendChart, splitChart, weekdaysChart].forEach(c => { try { c && c.destroy(); } catch(e){} });
+        trendChart = splitChart = weekdaysChart = null;
+      }
+
+      function renderCharts(period, compareMode){
+        destroyCharts();
+
+        const s = MOCK.series[period];
+        const showCompare = compareMode !== "none";
+
+        // Tendance
+        trendChart = new Chart($("#chartTrend"), {
+          type: "line",
+          data: {
+            labels: s.labels,
+            datasets: [
+              { label: "Période", data: s.ca, borderWidth: 2, tension: 0.35, fill: false },
+              ...(showCompare ? [{ label:"N-1", data: s.ca_n1, borderWidth: 2, tension: 0.35, fill: false }] : [])
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                ticks: { color: "rgba(180,195,222,.85)", font: { size: 11 } },
+                grid: { color: "rgba(207,163,74,.08)" }
+              },
+              y: {
+                ticks: { color: "rgba(180,195,222,.85)", font: { size: 11 } },
+                grid: { color: "rgba(207,163,74,.08)" }
+              }
+            }
+          }
+        });
+
+        // Donut split
+        splitChart = new Chart($("#chartSplit"), {
+          type: "doughnut",
+          data: {
+            labels: MOCK.split.labels,
+            datasets: [{ data: MOCK.split.values, borderWidth: 0 }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "68%",
+            plugins: { legend: { display: false } }
+          }
+        });
+
+        // Bar weekdays (utilise série week même si période autre)
+        const w = MOCK.series.week;
+        weekdaysChart = new Chart($("#chartWeekdays"), {
+          type: "bar",
+          data: {
+            labels: w.labels,
+            datasets: [{ label:"CA", data: w.ca, borderWidth: 0 }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                ticks: { color: "rgba(180,195,222,.85)", font: { size: 11 } },
+                grid: { display: false }
+              },
+              y: {
+                ticks: { color: "rgba(180,195,222,.85)", font: { size: 11 } },
+                grid: { color: "rgba(207,163,74,.08)" }
+              }
+            }
+          }
+        });
+      }
+      // =========================
+      // Render KPI + table
+      // =========================
+      function renderKPIs(periodKey, compareMode){
+        const p = MOCK.periods[periodKey];
+
+        $("#badgePeriod").textContent = `📅 ${p.label}`;
+        $("#badgeSource").textContent = `🧭 ${MOCK.meta.source}`;
+
+        $("#osVersion").textContent = MOCK.meta.version;
+        $("#osUpdated").textContent = MOCK.meta.updated_at;
+
+        const ca = p.ca;
+        const ca_n1 = compareMode === "none" ? null : p.ca_n1;
+        const covers = p.covers;
+        const covers_n1 = compareMode === "none" ? null : p.covers_n1;
+        const tm = p.tm;
+        const tm_goal = p.tm_goal;
+        const goal = p.goal_ca;
+
+        $("#kpi_ca").textContent = fmtEUR(ca);
+        $("#kpi_cov").textContent = fmtNum(covers);
+        $("#kpi_tm").textContent = fmtEUR(tm);
+        $("#kpi_goal").textContent = fmtEUR(goal);
+
+        // metas
+        $("#kpi_ca_meta").textContent = (ca_n1 == null)
+          ? "comparaison : —"
+          : `vs N-1 : ${fmtPct(pct(ca, ca_n1))}`;
+
+        $("#kpi_cov_meta").textContent = (covers_n1 == null)
+          ? "comparaison : —"
+          : `vs N-1 : ${fmtPct(pct(covers, covers_n1))}`;
+
+        $("#kpi_tm_meta").textContent = `objectif : ${fmtEUR(tm_goal)}`;
+
+        const achieved = Math.max(0, Math.min(100, (ca / goal) * 100));
+        $("#kpi_goal_meta").textContent = `atteint : ${achieved.toFixed(0)}%`;
+        $("#goalBar").style.width = achieved.toFixed(0) + "%";
+      }
+
+      function row(label, cur, prev, note){
+        const d = pct(cur, prev);
+        const isGood = d >= 0;
+        const badge = isGood
+          ? `<span class="os-badge-good">${fmtPct(d)}</span>`
+          : `<span class="os-badge-bad">${fmtPct(d)}</span>`;
+
+        return `
+          <tr>
+            <td style="font-weight:900;">${label}</td>
+            <td class="os-num">${cur}</td>
+            <td class="os-num">${prev}</td>
+            <td class="os-num">${badge}</td>
+            <td style="color:rgba(180,195,222,.95)">${note}</td>
+          </tr>
+        `;
+      }
+
+      function renderTable(periodKey, compareMode){
+        const p = MOCK.periods[periodKey];
+        const tb = $("#tableBody");
+
+        if (compareMode === "none"){
+          tb.innerHTML = `
+            <tr>
+              <td colspan="5" style="color:rgba(180,195,222,.95);">
+                Comparaison désactivée. Active “vs N-1” dans les filtres pour voir les écarts.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        const ca = p.ca, ca_n1 = p.ca_n1;
+        const cov = p.covers, cov_n1 = p.covers_n1;
+        const tm = p.tm, tm_n1 = (p.covers_n1 ? (p.ca_n1 / p.covers_n1) : p.tm);
+
+        tb.innerHTML = [
+          row(
+            "CA",
+            fmtEUR(ca),
+            fmtEUR(ca_n1),
+            "Indicateur principal direction."
+          ),
+          row(
+            "Couverts",
+            fmtNum(cov),
+            fmtNum(cov_n1),
+            "Si baisse : levier animation, résa, cadence service."
+          ),
+          row(
+            "Ticket moyen",
+            fmtEUR(tm),
+            fmtEUR(tm_n1),
+            "Si hausse : upsell OK. Si baisse : revoir bundles / menus."
+          )
+        ].join("");
+      }
+
+      // =========================
+      // “Fetch” demo (simulate)
+      // =========================
+      function simulateLoad(periodKey, compareMode){
+        // si on est en LOADING -> affiche skeleton 900ms puis OK
+        setState("LOADING");
+        setTimeout(() => {
+          // ici tu pourrais brancher fetch() plus tard
+          setState("OK");
+          renderKPIs(periodKey, compareMode);
+          renderTable(periodKey, compareMode);
+          renderCharts(periodKey, compareMode);
+        }, 900);
+      }
+
+      // =========================
+      // Init
+      // =========================
+      function init(){
+        // Default state
+        const periodKey = $("#f_period").value;
+        const compareMode = $("#f_compare").value;
+
+        // First render
+        renderKPIs(periodKey, compareMode);
+        renderTable(periodKey, compareMode);
+        renderCharts(periodKey, compareMode);
+
+        // State demo toggle
+        $("#btnState").addEventListener("click", () => {
+          stateIndex = (stateIndex + 1) % STATES.length;
+          const s = STATES[stateIndex];
+          setState(s);
+
+          // si on repasse à OK, on rerender
+          if (s === "OK"){
+            renderKPIs($("#f_period").value, $("#f_compare").value);
+            renderTable($("#f_period").value, $("#f_compare").value);
+            renderCharts($("#f_period").value, $("#f_compare").value);
+          }
+        });
+
+        // Reload
+        $("#btnReload").addEventListener("click", () => {
+          const p = $("#f_period").value;
+          const c = $("#f_compare").value;
+          simulateLoad(p, c);
+        });
+
+        // Filters change -> rerender (sans “loading”)
+        $("#f_period").addEventListener("change", () => {
+          const p = $("#f_period").value;
+          const c = $("#f_compare").value;
+          renderKPIs(p, c);
+          renderTable(p, c);
+          renderCharts(p, c);
+        });
+
+        $("#f_compare").addEventListener("change", () => {
+          const p = $("#f_period").value;
+          const c = $("#f_compare").value;
+          renderKPIs(p, c);
+          renderTable(p, c);
+          renderCharts(p, c);
+        });
+
+        // Initial badges
+        $("#badgePeriod").textContent = `📅 ${MOCK.periods[$("#f_period").value].label}`;
+        $("#badgeSource").textContent = `🧭 ${MOCK.meta.source}`;
+
+        // Ensure state OK by default
+        setState("OK");
+      }
+
+      init();
+    })();
+  </script>
+
 </body>
 </html>
