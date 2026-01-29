@@ -149,18 +149,22 @@
       transition:width .4s ease;
     }
 
-    /* Mini chart wrapper */
-    .os-chart-wrap{
-      border:1px solid rgba(207,163,74,.14);
-      background:rgba(7,19,38,.22);
-      border-radius:16px;
-      padding:14px;
-      box-shadow:none;
-      min-height:180px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
+  /* Mini chart wrapper — FIX taille Chart.js */
+.os-chart-wrap{
+  border:1px solid rgba(207,163,74,.14);
+  background:rgba(7,19,38,.22);
+  border-radius:16px;
+  padding:14px;
+  box-shadow:none;
+
+  /* ✅ FIX : hauteur contrôlée */
+  height: 190px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+}
     .os-chart-head{
       display:flex;
       justify-content:space-between;
@@ -178,10 +182,28 @@
       font-size:12px;
       color:rgba(180,195,222,.92);
     }
-    .os-canvas{
-      width:100%;
-      height:130px;
-    }
+    
+   /* Mini chart wrapper — FIX taille Chart.js */
+.os-chart-wrap{
+  border:1px solid rgba(207,163,74,.14);
+  background:rgba(7,19,38,.22);
+  border-radius:16px;
+  padding:14px;
+  box-shadow:none;
+
+  /* ✅ FIX : hauteur contrôlée */
+  height: 190px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* ✅ FIX : canvas doit prendre une hauteur réelle */
+.os-canvas{
+  width:100% !important;
+  height: 140px !important;
+  display:block;
+}
 
     /* Quick actions tiles */
     .os-tile{
