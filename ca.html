@@ -384,3 +384,468 @@
         </div>
       </div>
     </section>
+    <!-- INSIGHTS -->
+    <section class="os-insights os-gap-lg" aria-label="Insights direction">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+        <div>
+          <div class="os-chart-title">Insights (à faire aujourd’hui)</div>
+          <div class="os-chart-sub">3 actions ultra concrètes basées sur les écarts (demo).</div>
+        </div>
+        <span class="os-tag">Demo</span>
+      </div>
+      <ul id="insightsList">
+        <li>—</li>
+      </ul>
+    </section>
+
+    <!-- GRAPHS -->
+    <section class="os-grid os-gap-lg" aria-label="Graphiques">
+
+      <!-- Trend line (FIX layout) -->
+      <div class="os-chart-wrap os-col-8" aria-label="Tendance CA">
+        <div class="os-chart-head">
+          <div>
+            <div class="os-chart-title">Tendance CA — période</div>
+            <div class="os-chart-sub">Courbe + comparaison vs N-1 (si activée).</div>
+          </div>
+          <span class="os-tag">Demo</span>
+        </div>
+        <canvas id="chartTrend" class="os-canvas" aria-label="Graphique tendance CA"></canvas>
+      </div>
+
+      <!-- Donut split -->
+      <div class="os-chart-wrap sm os-col-4" aria-label="Répartition CA">
+        <div class="os-chart-head">
+          <div>
+            <div class="os-chart-title">Répartition CA</div>
+            <div class="os-chart-sub">Bar / Cuisine / Events</div>
+          </div>
+          <span class="os-tag">Demo</span>
+        </div>
+        <canvas id="chartSplit" class="os-canvas sm" aria-label="Graphique répartition CA"></canvas>
+      </div>
+
+      <!-- Day of week -->
+      <div class="os-chart-wrap os-col-12" aria-label="Performance par jour">
+        <div class="os-chart-head">
+          <div>
+            <div class="os-chart-title">Performance — par jour (Lun→Dim)</div>
+            <div class="os-chart-sub">Aide planning / animation / staffing.</div>
+          </div>
+          <span class="os-tag">Demo</span>
+        </div>
+        <canvas id="chartWeekdays" class="os-canvas" aria-label="Graphique performance par jour"></canvas>
+      </div>
+
+      <!-- Rush hours -->
+      <div class="os-chart-wrap os-col-12" aria-label="Heures de rush">
+        <div class="os-chart-head">
+          <div>
+            <div class="os-chart-title">Heures de rush — CA par heure</div>
+            <div class="os-chart-sub">Pour décider staffing + brief + animation (standard POS).</div>
+          </div>
+          <span class="os-tag">Demo</span>
+        </div>
+        <canvas id="chartRush" class="os-canvas" aria-label="Graphique CA par heure"></canvas>
+      </div>
+
+    </section>
+
+    <!-- TABLEAU COMPARATIF -->
+    <section class="os-card-soft os-section-pad os-gap-lg" aria-label="Tableau comparatif">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+        <div>
+          <h2 class="os-h2">Comparatif vs N-1</h2>
+          <div class="os-sub">Synthèse actionnable : où agir en priorité.</div>
+        </div>
+        <span class="os-tag">Demo</span>
+      </div>
+
+      <table class="os-table" aria-label="Tableau comparatif CA">
+        <thead>
+          <tr>
+            <th>Indicateur</th>
+            <th class="os-num">Période</th>
+            <th class="os-num">N-1</th>
+            <th class="os-num">Écart</th>
+            <th>Lecture</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+
+      <div class="os-sub" style="margin-top:12px;">
+        Réflexe direction : si ticket moyen monte mais CA baisse → levier fréquentation (couverts / remplissage / rush).
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="os-footer" aria-label="Pied de page">
+      <div>
+        <div style="font-weight:900; letter-spacing:.2px;">Support intranet : Augustin (Admin OS)</div>
+        <div style="margin-top:4px;">
+          Version : <strong id="osVersion">v0.3</strong> • Dernière MAJ : <strong id="osUpdated">—</strong>
+        </div>
+      </div>
+
+      <div class="os-footer-actions" aria-label="Actions support">
+        <a class="btn"
+           href="mailto:augustin@pirates-paradise.fr?subject=Bug%20intranet%20Pirates%20Paradise%20OS"
+           aria-label="Signaler un bug par email">🐛 Signaler un bug</a>
+
+        <a class="btn primary"
+           href="mailto:augustin@pirates-paradise.fr?subject=Demande%20d%E2%80%99acc%C3%A8s%20intranet"
+           aria-label="Demander un accès par email">🔐 Demander un accès</a>
+      </div>
+    </footer>
+
+  </main>
+  <script>
+    (function () {
+      const $ = (s) => document.querySelector(s);
+
+      // =========================
+      // MOCK DATA (base)
+      // =========================
+      const MOCK = {
+        meta: { version: "v0.3", updated_at: "2026-01-29", source: "Demo" },
+
+        periods: {
+          day:  { label:"Aujourd’hui",      ca:18581.37, ca_n1:17172.40, covers:629, covers_n1:649, tm:27.15, tm_goal:28.00, goal_ca:22000 },
+          week: { label:"Semaine (à date)", ca:7317.84,  ca_n1:6027.83,  covers:264, covers_n1:241, tm:27.72, tm_goal:28.00, goal_ca:8500  },
+          month:{ label:"Mois (à date)",    ca:208889.09,ca_n1:226399.04,covers:7550,covers_n1:7920,tm:27.67, tm_goal:28.00, goal_ca:230000 }
+        },
+
+        series: {
+          day: {
+            labels:["12h","13h","14h","15h","16h","17h","18h","19h","20h","21h","22h"],
+            ca:[420,980,1210,870,620,740,1100,2650,5200,4280,1530],
+            ca_n1:[380,910,1090,920,600,690,980,2400,4900,4000,1410]
+          },
+          week: {
+            labels:["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"],
+            ca:[920,1010,1150,980,1420,1850,1988],
+            ca_n1:[840,920,1080,940,1280,1750,1258]
+          },
+          month: {
+            labels:["S1","S2","S3","S4"],
+            ca:[52000,58000,51000,48889],
+            ca_n1:[56000,60000,54000,56399]
+          }
+        },
+
+        split: { labels:["Bar","Cuisine","Events"], values:[34,56,10] }
+      };
+
+      // =========================
+      // Utils
+      // =========================
+      function fmtEUR(n){
+        return new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR"}).format(Number(n));
+      }
+      function fmtNum(n){
+        return new Intl.NumberFormat("fr-FR").format(Number(n));
+      }
+      function pct(a,b){ if(!b) return 0; return ((a-b)/b)*100; }
+      function fmtPct(n){ const s=n>0?"+":""; return `${s}${n.toFixed(1)}%`; }
+
+      function formatRange(start,end,fallbackLabel){
+        if(start && end) return `📅 ${start} → ${end}`;
+        if(start && !end) return `📅 Dès ${start}`;
+        if(!start && end) return `📅 Jusqu’au ${end}`;
+        return `📅 ${fallbackLabel}`;
+      }
+
+      function daysBetween(a,b){
+        const d1 = new Date(a), d2 = new Date(b);
+        const ms = d2.getTime() - d1.getTime();
+        return Math.max(0, Math.round(ms / 86400000));
+      }
+
+      // Génère une série “custom” (demo) à partir du range
+      function buildCustomSeries(start,end){
+        const n = Math.min(31, Math.max(2, daysBetween(start,end)+1));
+        const labels = [];
+        const ca = [];
+        const ca_n1 = [];
+        for(let i=0;i<n;i++){
+          const d = new Date(start);
+          d.setDate(d.getDate()+i);
+          labels.push(d.toLocaleDateString("fr-FR",{day:"2-digit",month:"short"}));
+
+          // valeurs demo (réalistes)
+          const base = 1400 + Math.sin(i/2)*220 + (Math.random()*160);
+          const val = Math.max(650, base);
+          ca.push(Math.round(val));
+
+          const baseN1 = val * (0.92 + Math.random()*0.10);
+          ca_n1.push(Math.round(baseN1));
+        }
+        return { labels, ca, ca_n1 };
+      }
+
+      // =========================
+      // Charts
+      // =========================
+      let trendChart=null, splitChart=null, weekdaysChart=null, rushChart=null;
+
+      function destroyCharts(){
+        [trendChart,splitChart,weekdaysChart,rushChart].forEach(c=>{ try{ c&&c.destroy(); }catch(e){} });
+        trendChart=splitChart=weekdaysChart=rushChart=null;
+      }
+
+      function baseScales(){
+        return {
+          x:{ ticks:{ color:"rgba(180,195,222,.85)", font:{size:11} }, grid:{ color:"rgba(207,163,74,.08)" } },
+          y:{ ticks:{ color:"rgba(180,195,222,.85)", font:{size:11} }, grid:{ color:"rgba(207,163,74,.08)" } }
+        };
+      }
+
+      function renderCharts(periodKey, compareMode, customSeries){
+        destroyCharts();
+        const showCompare = compareMode !== "none";
+
+        // Trend source
+        const s = customSeries || MOCK.series[periodKey];
+
+        trendChart = new Chart($("#chartTrend"), {
+          type:"line",
+          data:{
+            labels:s.labels,
+            datasets:[
+              { label:"Période", data:s.ca, borderWidth:2, tension:.35, fill:false },
+              ...(showCompare ? [{ label:"N-1", data:s.ca_n1, borderWidth:2, tension:.35, fill:false }] : [])
+            ]
+          },
+          options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            plugins:{ legend:{ display:false } },
+            scales: baseScales()
+          }
+        });
+
+        splitChart = new Chart($("#chartSplit"), {
+          type:"doughnut",
+          data:{ labels:MOCK.split.labels, datasets:[{ data:MOCK.split.values, borderWidth:0 }] },
+          options:{ responsive:true, maintainAspectRatio:false, cutout:"68%", plugins:{ legend:{ display:false } } }
+        });
+
+        // Weekdays (toujours utile resto)
+        const w = MOCK.series.week;
+        weekdaysChart = new Chart($("#chartWeekdays"), {
+          type:"bar",
+          data:{ labels:w.labels, datasets:[{ data:w.ca, borderWidth:0 }] },
+          options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ display:false } },
+            scales:{
+              x:{ ticks:{ color:"rgba(180,195,222,.85)", font:{size:11} }, grid:{ display:false } },
+              y:{ ticks:{ color:"rgba(180,195,222,.85)", font:{size:11} }, grid:{ color:"rgba(207,163,74,.08)" } }
+            }
+          }
+        });
+
+        // Rush hours (standard POS : hour/daypart)
+        const r = MOCK.series.day; // demo “par heure”
+        rushChart = new Chart($("#chartRush"), {
+          type:"line",
+          data:{ labels:r.labels, datasets:[{ data:r.ca, borderWidth:2, tension:.35, fill:false }] },
+          options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ display:false } },
+            scales: baseScales()
+          }
+        });
+      }
+
+      // =========================
+      // KPIs + Table + Insights
+      // =========================
+      function renderKPIs(periodKey, compareMode, customSeries){
+        const p = MOCK.periods[periodKey];
+
+        const start = $("#f_start").value;
+        const end = $("#f_end").value;
+
+        $("#badgePeriod").textContent = formatRange(start,end,p.label);
+        $("#badgeSource").textContent = `🧭 ${MOCK.meta.source}`;
+
+        $("#osVersion").textContent = MOCK.meta.version;
+        $("#osUpdated").textContent = MOCK.meta.updated_at;
+                // ====== KPIs (si date range : on simule depuis la série custom) ======
+        let caVal = p.ca;
+        let caN1 = p.ca_n1;
+        let coversVal = p.covers;
+        let coversN1 = p.covers_n1;
+        let tmVal = p.tm;
+        let goalCa = p.goal_ca;
+
+        // Si on a un customSeries (date range), on calcule un CA “période” demo
+        if (customSeries && customSeries.ca && customSeries.ca.length) {
+          caVal = customSeries.ca.reduce((a, b) => a + b, 0);
+          caN1 = (customSeries.ca_n1 || []).reduce((a, b) => a + b, 0);
+
+          // Couverts demo cohérents : environ 1 couvert / 28€ (ordre de grandeur)
+          coversVal = Math.round(caVal / Math.max(22, tmVal));
+          coversN1 = Math.round(caN1 / Math.max(22, tmVal));
+          // Ticket moyen : garde une valeur stable mais réaliste
+          tmVal = Math.round((caVal / Math.max(1, coversVal)) * 100) / 100;
+
+          // Objectif : on fixe un objectif = CA * 1.12 (demo)
+          goalCa = Math.round(caVal * 1.12);
+        }
+
+        // Affichage KPIs
+        $("#kpi_ca").textContent = fmtEUR(caVal);
+        $("#kpi_cov").textContent = fmtNum(coversVal);
+        $("#kpi_tm").textContent = fmtEUR(tmVal);
+        $("#kpi_goal").textContent = fmtEUR(goalCa);
+
+        // Comparaison
+        const showCompare = compareMode !== "none";
+        const caDelta = pct(caVal, caN1);
+        const covDelta = pct(coversVal, coversN1);
+        const tmN1 = (coversN1 > 0) ? (caN1 / coversN1) : 0;
+        const tmDelta = pct(tmVal, tmN1);
+
+        $("#kpi_ca_meta").textContent = showCompare ? `vs N-1 : ${fmtPct(caDelta)}` : `comparaison : —`;
+        $("#kpi_cov_meta").textContent = showCompare ? `vs N-1 : ${fmtPct(covDelta)}` : `comparaison : —`;
+        $("#kpi_tm_meta").textContent = `objectif : ${fmtEUR(p.tm_goal)}`;
+
+        // Progress objectif
+        const progress = Math.max(0, Math.min(100, (caVal / Math.max(1, goalCa)) * 100));
+        $("#goalBar").style.width = progress.toFixed(0) + "%";
+        $("#kpi_goal_meta").textContent = `atteint : ${progress.toFixed(0)}%`;
+
+        // ====== Insights (3 actions “direction” très Pirates Paradise) ======
+        const insights = [];
+
+        // 1) CA baisse mais TM monte => problème de fréquentation
+        if (showCompare && caDelta < 0 && tmDelta > 0) {
+          insights.push("CA en baisse mais ticket moyen en hausse → levier prioritaire : augmenter les couverts (remplissage, upsell pré-rush, relance résas).");
+        }
+
+        // 2) Rush : on repère l’heure max (sur la série “day”)
+        const rush = MOCK.series.day.ca;
+        const rushLabels = MOCK.series.day.labels;
+        let maxIdx = 0;
+        for (let i = 1; i < rush.length; i++) if (rush[i] > rush[maxIdx]) maxIdx = i;
+        insights.push(`Rush principal autour de ${rushLabels[maxIdx]} → briefer salle/bar 15 min avant (accélérer la prise de commande + upsell desserts).`);
+
+        // 3) Si progression objectif < 80%
+        if (progress < 80) {
+          const missing = Math.max(0, goalCa - caVal);
+          insights.push(`Objectif non atteint → manque ${fmtEUR(missing)}. Action : push menus famille + relance upsell boissons/desserts sur le créneau rush.`);
+        } else {
+          insights.push("Objectif en bonne voie → sécuriser la qualité service (vitesse + expérience) pour protéger les avis et le repeat.");
+        }
+
+        // Inject insights
+        const ul = $("#insightsList");
+        ul.innerHTML = insights.slice(0, 3).map(t => `<li>${t}</li>`).join("");
+
+        // ====== Tableau comparatif ======
+        const rows = [
+          {
+            label: "CA",
+            val: caVal,
+            n1: caN1,
+            unit: "€",
+            explain: "Pilotage global (volume)."
+          },
+          {
+            label: "Couverts",
+            val: coversVal,
+            n1: coversN1,
+            unit: "",
+            explain: "Levier fréquentation / remplissage."
+          },
+          {
+            label: "Ticket moyen",
+            val: tmVal,
+            n1: tmN1,
+            unit: "€",
+            explain: "Levier upsell / carte / bundles."
+          }
+        ];
+
+        const tb = $("#tableBody");
+        tb.innerHTML = rows.map(r => {
+          const d = showCompare ? pct(r.val, r.n1) : 0;
+          const badge = !showCompare
+            ? `<span class="os-tag">—</span>`
+            : (d >= 0
+              ? `<span class="os-badge-good">${fmtPct(d)}</span>`
+              : `<span class="os-badge-bad">${fmtPct(d)}</span>`);
+
+          const valStr = r.unit === "€" ? fmtEUR(r.val) : fmtNum(r.val);
+          const n1Str = r.unit === "€" ? fmtEUR(r.n1) : fmtNum(r.n1);
+
+          return `
+            <tr>
+              <td><strong>${r.label}</strong></td>
+              <td class="os-num">${valStr}</td>
+              <td class="os-num">${showCompare ? n1Str : "—"}</td>
+              <td class="os-num">${showCompare ? badge : "—"}</td>
+              <td>${r.explain}</td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      // =========================
+      // Main refresh
+      // =========================
+      function refresh() {
+        const periodKey = $("#f_period").value;
+        const compareMode = $("#f_compare").value;
+
+        const start = $("#f_start").value;
+        const end = $("#f_end").value;
+
+        // Custom series si 2 dates valides
+        let customSeries = null;
+        if (start && end) {
+          // sécurité : si end < start, on inverse
+          if (new Date(end) < new Date(start)) {
+            $("#f_start").value = end;
+            $("#f_end").value = start;
+          }
+          customSeries = buildCustomSeries($("#f_start").value, $("#f_end").value);
+        }
+
+        renderKPIs(periodKey, compareMode, customSeries);
+        renderCharts(periodKey, compareMode, customSeries);
+      }
+      // =========================
+      // Init
+      // =========================
+      function init() {
+        // Valeurs par défaut “semaine” déjà set dans HTML
+        // Date range : on laisse vide par défaut (sinon ça override la période)
+
+        // Listeners
+        $("#f_period").addEventListener("change", refresh);
+        $("#f_compare").addEventListener("change", refresh);
+        $("#f_restaurant").addEventListener("change", refresh);
+
+        $("#f_start").addEventListener("change", refresh);
+        $("#f_end").addEventListener("change", refresh);
+
+        $("#btnReload").addEventListener("click", refresh);
+
+        // Premier rendu
+        refresh();
+      }
+
+      // Run
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+</body>
+</html>
