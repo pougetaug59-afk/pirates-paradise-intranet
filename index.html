@@ -12,62 +12,84 @@
 <body data-page="home">
   <!-- TOPBAR -->
   <header class="topbar">
+    <!-- Ligne 1 : marque / logo centré / actions -->
     <div class="container topbar-inner" style="display:flex; align-items:center; gap:14px;">
-      <!-- Logo / marque -->
-      <div class="brand" style="flex:0 0 auto;">
+      <!-- Gauche : marque -->
+      <div class="brand" style="flex:1; min-width:220px;">
         <div class="logo">PP</div>
         <div>
           <div class="brand-title">Pirates Paradise — Intranet</div>
-          <div class="brand-sub">Dashboard interne</div>
+          <div class="brand-sub" id="subtitle">Dashboard interne</div>
         </div>
       </div>
 
-      <!-- Onglets principaux (comme sur ta photo) -->
-      <nav aria-label="Navigation principale" style="
-        flex:1;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        gap:18px;
-        flex-wrap:wrap;
-      ">
-        <a class="nav-link" href="./index.html" style="font-weight:800;">Actualités</a>
-        <a class="nav-link" href="./crm.html">Équipe</a>
-        <a class="nav-link" href="./docs.html">Ressources</a>
-        <a class="nav-link" href="./rh.html">Espace RH</a>
-      </nav>
+      <!-- Centre : logo image -->
+      <div style="flex:0 0 auto; display:flex; justify-content:center; align-items:center;">
+        <img
+          src="https://lille.pirates-paradise.fr/wp-content/uploads/2025/08/col.png"
+          alt="Pirates Paradise"
+          style="height:42px; width:auto; display:block; filter:drop-shadow(0 10px 18px rgba(0,0,0,.35));"
+        />
+      </div>
 
-      <!-- Actions droite -->
-      <div class="top-actions" style="flex:0 0 auto; display:flex; align-items:center; gap:10px;">
-        <a class="btn" href="./tools.html">Outils</a>
+      <!-- Droite : actions -->
+      <div class="top-actions" style="flex:1; display:flex; justify-content:flex-end; gap:10px; align-items:center; min-width:220px;">
+        <select class="select" id="roleSelect">
+          <option value="manager">Manager</option>
+          <option value="direction">Direction</option>
+          <option value="salle">Salle</option>
+          <option value="bar">Bar</option>
+          <option value="cuisine">Cuisine</option>
+          <option value="event">Événementiel</option>
+          <option value="maintenance">Maintenance</option>
+        </select>
 
-        <!-- Bouton + (ouvre le menu du reste) -->
-        <button id="moreBtn" class="btn primary" type="button" aria-expanded="false" aria-controls="moreMenu" style="border-radius:999px; padding:8px 12px;">
-          ＋
-        </button>
+        <a class="btn" href="./ops.html">✅ Ops</a>
+        <a class="btn primary" href="./index.html">🏠 Dashboard</a>
       </div>
     </div>
 
-    <!-- MENU “+” (les autres pages) -->
-    <div class="container" style="padding-bottom:12px;">
-      <div id="moreMenu" class="card" style="display:none; box-shadow:none; margin-top:10px;">
-        <div class="muted" style="margin-bottom:10px;">Autres sections</div>
+    <!-- Ligne 2 : barre d'onglets (comme ta photo) + bouton + -->
+    <div class="container" style="padding-top:10px; padding-bottom:10px;">
+      <div style="display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap;">
+        <!-- 4 onglets principaux -->
+        <a class="nav-link" href="./index.html" style="font-weight:800;">Actualités</a>
+        <a class="nav-link" href="./ops.html">Équipe</a>
+        <a class="nav-link" href="./docs.html">Ressources</a>
+        <a class="nav-link" href="./rh.html">Espace RH</a>
 
+        <!-- Bouton + -->
+        <button
+          id="moreBtn"
+          type="button"
+          class="btn primary"
+          aria-expanded="false"
+          aria-controls="moreMenu"
+          style="border-radius:999px; padding:7px 12px;"
+        >＋</button>
+      </div>
+
+      <!-- Menu du + (caché par défaut) -->
+      <div id="moreMenu" class="card" style="display:none; margin-top:12px; box-shadow:none;">
+        <div class="muted" style="margin-bottom:10px;">Autres pages</div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <a class="btn" href="./ca.html" style="border-radius:999px;">💰 CA</a>
           <a class="btn" href="./frequentation.html" style="border-radius:999px;">👥 Fréquentation</a>
           <a class="btn" href="./alerts.html" style="border-radius:999px;">🚨 Alertes</a>
           <a class="btn" href="./ops.html" style="border-radius:999px;">✅ Ops</a>
-          <a class="btn" href="./com.html" style="border-radius:999px;">📣 Com</a>
+          <a class="btn" href="./tools.html" style="border-radius:999px;">🧰 Outils</a>
+          <a class="btn" href="./crm.html" style="border-radius:999px;">🧩 CRM</a>
           <a class="btn" href="./b2b.html" style="border-radius:999px;">🤝 B2B</a>
+          <a class="btn" href="./rh.html" style="border-radius:999px;">🧑‍🤝‍🧑 RH</a>
           <a class="btn" href="./finance.html" style="border-radius:999px;">🧾 Compta</a>
+          <a class="btn" href="./com.html" style="border-radius:999px;">📣 Com</a>
           <a class="btn" href="./gifts.html" style="border-radius:999px;">🎁 Bons cadeaux</a>
           <a class="btn" href="./settings.html" style="border-radius:999px;">⚙️ Réglages</a>
         </div>
       </div>
     </div>
 
-    <!-- Recherche (optionnel, reste simple) -->
+    <!-- Ligne 3 : recherche -->
     <div class="container" style="padding-bottom:14px;">
       <div class="search">
         <div class="searchbox" style="width:100%;">
@@ -79,29 +101,34 @@
     </div>
   </header>
 
-  <!-- PAGE -->
   <main class="container">
     <section class="page">
       <div class="page-head">
-        <h2>Dashboard direction & managers</h2>
+        <h2 id="pageTitle">Dashboard direction & managers</h2>
         <div class="muted">Dernière mise à jour : <strong id="lastUpdate">—</strong></div>
       </div>
 
+      <!-- WELCOME -->
       <div class="card" style="margin-bottom:14px;">
-        <div style="font-weight:900;">Bienvenue à bord 🏴‍☠️</div>
+        <div style="font-weight:900; letter-spacing:.2px;">Bienvenue à bord 🏴‍☠️</div>
         <div class="muted" style="margin-top:6px;">
           Homepage MVP : chiffres clés + veille “restauration” + accès rapide.
         </div>
       </div>
 
       <div class="grid">
+        <!-- KPIs -->
         <div class="card span-12">
           <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:10px; flex-wrap:wrap;">
             <div>
-              <div style="font-weight:900;">📌 Chiffres clés</div>
+              <div style="font-weight:900; letter-spacing:.2px;">📌 Chiffres clés</div>
               <div class="muted" style="margin-top:6px;">
                 Données chargées depuis <code>data/dashboard.json</code> (pour l’instant).
               </div>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <a class="btn" href="./ca.html">Voir page CA</a>
+              <a class="btn" href="./frequentation.html">Voir fréquentation</a>
             </div>
           </div>
 
@@ -123,8 +150,9 @@
           </div>
         </div>
 
+        <!-- VEILLE (placeholder) -->
         <div class="card span-12">
-          <div style="font-weight:900;">🗞️ Veille — actualités restauration</div>
+          <div style="font-weight:900; letter-spacing:.2px;">🗞️ Veille — actualités restauration</div>
           <div class="muted" style="margin-top:8px;">
             Ce bloc sera alimenté automatiquement (n8n) : sélection + résumé des actus du secteur.
           </div>
@@ -141,26 +169,28 @@
             </div>
           </div>
         </div>
+
       </div>
     </section>
   </main>
 
-  <!-- Script simple pour le bouton + -->
+  <!-- ✅ Script bouton + (au clic) -->
   <script>
     (function () {
       const btn = document.getElementById('moreBtn');
       const menu = document.getElementById('moreMenu');
       if (!btn || !menu) return;
 
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const isOpen = menu.style.display === 'block';
         menu.style.display = isOpen ? 'none' : 'block';
         btn.setAttribute('aria-expanded', String(!isOpen));
       });
 
-      // Fermer si on clique ailleurs
       document.addEventListener('click', (e) => {
-        if (e.target === btn || menu.contains(e.target)) return;
+        if (menu.contains(e.target) || e.target === btn) return;
         menu.style.display = 'none';
         btn.setAttribute('aria-expanded', 'false');
       });
