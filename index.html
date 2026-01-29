@@ -5,28 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pirates Paradise — Intranet • Dashboard</title>
 
-  <link rel="stylesheet" href="./assets/app.css?v=TEST1">
-  <script src="./assets/app.js?v=TEST1" defer></script>
+  <!-- CSS versionné (évite les soucis de cache GitHub Pages) -->
+  <link rel="stylesheet" href="./assets/app.css?v=dark1">
+
+  <!-- JS versionné -->
+  <script src="./assets/app.js?v=dark1" defer></script>
 </head>
 
 <body data-page="home">
-
-  <!-- ✅ BADGE TEST (si tu le vois, c’est que tu modifies le bon index.html) -->
-  <div style="
-    position:fixed;
-    top:12px; left:12px;
-    z-index:99999;
-    background:#ff0033;
-    color:#fff;
-    font-weight:800;
-    padding:10px 12px;
-    border-radius:10px;
-    box-shadow:0 10px 30px rgba(0,0,0,.25);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  ">
-    ✅ INDEX TEST OK — VERSION TEST1
-  </div>
-
+  <!-- TOPBAR -->
   <header class="topbar">
     <div class="container topbar-inner">
       <div class="brand">
@@ -63,6 +50,7 @@
   </header>
 
   <main class="container">
+    <!-- NAV -->
     <nav class="nav">
       <a class="nav-link" href="./index.html" data-nav="home">Dashboard</a>
       <a class="nav-link" href="./ca.html" data-nav="ca">CA</a>
@@ -83,39 +71,94 @@
       <a class="nav-link" href="./settings.html" data-nav="settings">Réglages</a>
     </nav>
 
+    <!-- PAGE -->
     <section class="page">
       <div class="page-head">
         <h2 id="pageTitle">Dashboard direction & managers</h2>
         <div class="muted">Dernière mise à jour : <strong id="lastUpdate">—</strong></div>
       </div>
 
-      <div class="card" style="margin-bottom:16px;">
-        <div style="font-weight:800;color:var(--pp-navy);">Bienvenue à bord 🏴‍☠️</div>
+      <!-- WELCOME -->
+      <div class="card span-12" style="margin-bottom:14px;">
+        <div style="font-weight:900; letter-spacing:.2px;">Bienvenue à bord 🏴‍☠️</div>
         <div class="muted" style="margin-top:6px;">
-          Ceci est la homepage MVP : chiffres clés, alertes, opérations du jour, accès rapide.
+          Homepage MVP : chiffres clés, alertes, opérations du jour, accès rapide.
         </div>
       </div>
 
       <div class="grid">
+        <!-- KPIs -->
         <div class="card span-12">
-          <div style="font-weight:800;color:var(--pp-navy);">📌 Chiffres clés</div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:10px; flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:900; letter-spacing:.2px;">📌 Chiffres clés</div>
+              <div class="muted" style="margin-top:6px;">
+                Données actuellement chargées depuis <code>data/dashboard.json</code>.
+              </div>
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <a class="btn" href="./ca.html">Voir page CA</a>
+              <a class="btn" href="./frequentation.html">Voir fréquentation</a>
+            </div>
+          </div>
+
           <div class="grid" style="margin-top:14px;">
             <div class="card span-4" style="box-shadow:none;">
               <div class="muted">CA jour</div>
-              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_ca_day">—</div>
+              <div id="kpi_ca_day" style="font-size:28px; font-weight:950; margin-top:6px;">—</div>
+              <div class="muted" style="margin-top:6px;">Pilotage immédiat</div>
             </div>
+
             <div class="card span-4" style="box-shadow:none;">
               <div class="muted">Couverts jour</div>
-              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_covers_day">—</div>
+              <div id="kpi_covers_day" style="font-size:28px; font-weight:950; margin-top:6px;">—</div>
+              <div class="muted" style="margin-top:6px;">Rythme service</div>
             </div>
+
             <div class="card span-4" style="box-shadow:none;">
               <div class="muted">Ticket moyen jour</div>
-              <div style="font-size:22px;font-weight:900;margin-top:6px;" id="kpi_tm_day">—</div>
+              <div id="kpi_tm_day" style="font-size:28px; font-weight:950; margin-top:6px;">—</div>
+              <div class="muted" style="margin-top:6px;">Upsell boissons/desserts</div>
             </div>
           </div>
         </div>
-      </div>
 
+        <!-- ALERTES -->
+        <div class="card span-6">
+          <div style="font-weight:900; letter-spacing:.2px;">🚨 Alertes prioritaires</div>
+          <div class="muted" style="margin-top:8px;">
+            (On branchera la liste + compteur via n8n.)
+          </div>
+          <div style="margin-top:12px;">
+            <a class="btn" href="./alerts.html">Ouvrir →</a>
+          </div>
+        </div>
+
+        <!-- OPS -->
+        <div class="card span-6">
+          <div style="font-weight:900; letter-spacing:.2px;">✅ Ops du jour</div>
+          <div class="muted" style="margin-top:8px;">
+            Checklists ouverture / service / fermeture.
+          </div>
+          <div style="margin-top:12px;">
+            <a class="btn primary" href="./ops.html">Ouvrir →</a>
+          </div>
+        </div>
+
+        <!-- PLACEHOLDER GRAPHIQUE (on le fera plus tard) -->
+        <div class="card span-12">
+          <div style="font-weight:900; letter-spacing:.2px;">📈 Évolution CA</div>
+          <div class="muted" style="margin-top:8px;">
+            Graphique à brancher ensuite via n8n (history). Pour l’instant : MVP stable.
+          </div>
+
+          <div class="card" style="box-shadow:none; margin-top:12px;">
+            <div class="muted">Zone graphique (plus tard)</div>
+            <div style="height:220px; border:1px dashed rgba(207,163,74,.25); border-radius:14px; margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 </body>
