@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pirates Paradise — Intranet • Dashboard</title>
 
-  <!-- CSS versionné (évite le cache GitHub Pages) -->
   <link rel="stylesheet" href="./assets/app.css?v=dark1">
-  <!-- JS versionné -->
   <script src="./assets/app.js?v=dark1" defer></script>
 </head>
 
@@ -15,43 +13,62 @@
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="container topbar-inner" style="display:flex; align-items:center; gap:14px;">
-      <!-- Gauche : marque -->
-      <div class="brand" style="flex:1; min-width:220px;">
+      <!-- Logo / marque -->
+      <div class="brand" style="flex:0 0 auto;">
         <div class="logo">PP</div>
         <div>
           <div class="brand-title">Pirates Paradise — Intranet</div>
-          <div class="brand-sub" id="subtitle">Dashboard interne</div>
+          <div class="brand-sub">Dashboard interne</div>
         </div>
       </div>
 
-      <!-- Milieu : LOGO (image) -->
-      <div style="flex:0 0 auto; display:flex; justify-content:center; align-items:center;">
-        <img
-          src="https://lille.pirates-paradise.fr/wp-content/uploads/2025/08/col.png"
-          alt="Pirates Paradise"
-          style="height:42px; width:auto; display:block; filter:drop-shadow(0 10px 18px rgba(0,0,0,.35));"
-        />
-      </div>
+      <!-- Onglets principaux (comme sur ta photo) -->
+      <nav aria-label="Navigation principale" style="
+        flex:1;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        gap:18px;
+        flex-wrap:wrap;
+      ">
+        <a class="nav-link" href="./index.html" style="font-weight:800;">Actualités</a>
+        <a class="nav-link" href="./crm.html">Équipe</a>
+        <a class="nav-link" href="./docs.html">Ressources</a>
+        <a class="nav-link" href="./rh.html">Espace RH</a>
+      </nav>
 
-      <!-- Droite : actions -->
-      <div class="top-actions" style="flex:1; display:flex; justify-content:flex-end; gap:10px; align-items:center; min-width:220px;">
-        <select class="select" id="roleSelect">
-          <option value="manager">Manager</option>
-          <option value="direction">Direction</option>
-          <option value="salle">Salle</option>
-          <option value="bar">Bar</option>
-          <option value="cuisine">Cuisine</option>
-          <option value="event">Événementiel</option>
-          <option value="maintenance">Maintenance</option>
-        </select>
+      <!-- Actions droite -->
+      <div class="top-actions" style="flex:0 0 auto; display:flex; align-items:center; gap:10px;">
+        <a class="btn" href="./tools.html">Outils</a>
 
-        <a class="btn" href="./ops.html">✅ Ops</a>
-        <a class="btn primary" href="./index.html">🏠 Dashboard</a>
+        <!-- Bouton + (ouvre le menu du reste) -->
+        <button id="moreBtn" class="btn primary" type="button" aria-expanded="false" aria-controls="moreMenu" style="border-radius:999px; padding:8px 12px;">
+          ＋
+        </button>
       </div>
     </div>
 
-    <!-- Ligne 2 : recherche -->
-    <div class="container" style="padding-top:10px; padding-bottom:10px;">
+    <!-- MENU “+” (les autres pages) -->
+    <div class="container" style="padding-bottom:12px;">
+      <div id="moreMenu" class="card" style="display:none; box-shadow:none; margin-top:10px;">
+        <div class="muted" style="margin-bottom:10px;">Autres sections</div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a class="btn" href="./ca.html" style="border-radius:999px;">💰 CA</a>
+          <a class="btn" href="./frequentation.html" style="border-radius:999px;">👥 Fréquentation</a>
+          <a class="btn" href="./alerts.html" style="border-radius:999px;">🚨 Alertes</a>
+          <a class="btn" href="./ops.html" style="border-radius:999px;">✅ Ops</a>
+          <a class="btn" href="./com.html" style="border-radius:999px;">📣 Com</a>
+          <a class="btn" href="./b2b.html" style="border-radius:999px;">🤝 B2B</a>
+          <a class="btn" href="./finance.html" style="border-radius:999px;">🧾 Compta</a>
+          <a class="btn" href="./gifts.html" style="border-radius:999px;">🎁 Bons cadeaux</a>
+          <a class="btn" href="./settings.html" style="border-radius:999px;">⚙️ Réglages</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recherche (optionnel, reste simple) -->
+    <div class="container" style="padding-bottom:14px;">
       <div class="search">
         <div class="searchbox" style="width:100%;">
           🔎
@@ -60,67 +77,31 @@
         </div>
       </div>
     </div>
-
-    <!-- Ligne 3 : NAV en “boutons/pills” (ceux que tu m’as listés) -->
-    <div class="container" style="padding-bottom:14px;">
-      <div style="
-        display:flex;
-        gap:10px;
-        flex-wrap:wrap;
-        align-items:center;
-      ">
-        <!-- Boutons principaux -->
-        <a class="btn" href="./index.html" style="border-radius:999px;">🏠 Dashboard</a>
-        <a class="btn" href="./ca.html" style="border-radius:999px;">💰 CA</a>
-        <a class="btn" href="./frequentation.html" style="border-radius:999px;">👥 Fréquentation</a>
-        <a class="btn" href="./alerts.html" style="border-radius:999px;">🚨 Alertes</a>
-        <a class="btn" href="./ops.html" style="border-radius:999px;">✅ Ops</a>
-        <a class="btn" href="./docs.html" style="border-radius:999px;">📚 Docs</a>
-        <a class="btn" href="./tools.html" style="border-radius:999px;">🧰 Outils</a>
-
-        <!-- Séparateur visuel -->
-        <span style="opacity:.35; padding:0 6px;">|</span>
-
-        <!-- Boutons “back-office” -->
-        <a class="btn" href="./crm.html" style="border-radius:999px;">🧩 CRM</a>
-        <a class="btn" href="./b2b.html" style="border-radius:999px;">🤝 B2B</a>
-        <a class="btn" href="./rh.html" style="border-radius:999px;">🧑‍🤝‍🧑 RH</a>
-        <a class="btn" href="./finance.html" style="border-radius:999px;">🧾 Compta</a>
-        <a class="btn" href="./com.html" style="border-radius:999px;">📣 Com</a>
-        <a class="btn" href="./gifts.html" style="border-radius:999px;">🎁 Bons cadeaux</a>
-        <a class="btn" href="./settings.html" style="border-radius:999px;">⚙️ Réglages</a>
-      </div>
-    </div>
   </header>
 
+  <!-- PAGE -->
   <main class="container">
     <section class="page">
       <div class="page-head">
-        <h2 id="pageTitle">Dashboard direction & managers</h2>
+        <h2>Dashboard direction & managers</h2>
         <div class="muted">Dernière mise à jour : <strong id="lastUpdate">—</strong></div>
       </div>
 
-      <!-- WELCOME -->
       <div class="card" style="margin-bottom:14px;">
-        <div style="font-weight:900; letter-spacing:.2px;">Bienvenue à bord 🏴‍☠️</div>
+        <div style="font-weight:900;">Bienvenue à bord 🏴‍☠️</div>
         <div class="muted" style="margin-top:6px;">
-          Homepage MVP : chiffres clés + accès rapide + veille “restauration”.
+          Homepage MVP : chiffres clés + veille “restauration” + accès rapide.
         </div>
       </div>
 
       <div class="grid">
-        <!-- KPIs -->
         <div class="card span-12">
           <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:10px; flex-wrap:wrap;">
             <div>
-              <div style="font-weight:900; letter-spacing:.2px;">📌 Chiffres clés</div>
+              <div style="font-weight:900;">📌 Chiffres clés</div>
               <div class="muted" style="margin-top:6px;">
                 Données chargées depuis <code>data/dashboard.json</code> (pour l’instant).
               </div>
-            </div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <a class="btn" href="./ca.html">Voir page CA</a>
-              <a class="btn" href="./frequentation.html">Voir fréquentation</a>
             </div>
           </div>
 
@@ -128,78 +109,62 @@
             <div class="card span-4" style="box-shadow:none;">
               <div class="muted">CA jour</div>
               <div id="kpi_ca_day" style="font-size:28px; font-weight:950; margin-top:6px;">—</div>
-              <div class="muted" style="margin-top:6px;">Pilotage immédiat</div>
             </div>
 
             <div class="card span-4" style="box-shadow:none;">
               <div class="muted">Couverts jour</div>
               <div id="kpi_covers_day" style="font-size:28px; font-weight:950; margin-top:6px;">—</div>
-              <div class="muted" style="margin-top:6px;">Rythme service</div>
             </div>
 
             <div class="card span-4" style="box-shadow:none;">
               <div class="muted">Ticket moyen jour</div>
               <div id="kpi_tm_day" style="font-size:28px; font-weight:950; margin-top:6px;">—</div>
-              <div class="muted" style="margin-top:6px;">Upsell boissons/desserts</div>
             </div>
           </div>
         </div>
 
-        <!-- VEILLE RESTAURATION (placeholder) -->
         <div class="card span-12">
-          <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:10px; flex-wrap:wrap;">
-            <div>
-              <div style="font-weight:900; letter-spacing:.2px;">🗞️ Veille — actualités restauration</div>
-              <div class="muted" style="margin-top:6px;">
-                Ce bloc sera alimenté automatiquement (n8n) : sélection + résumé des actus du secteur.
-              </div>
-            </div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <a class="btn" href="./tools.html">Configurer la veille (plus tard) →</a>
-            </div>
+          <div style="font-weight:900;">🗞️ Veille — actualités restauration</div>
+          <div class="muted" style="margin-top:8px;">
+            Ce bloc sera alimenté automatiquement (n8n) : sélection + résumé des actus du secteur.
           </div>
 
-          <!-- Articles (exemple visuel) -->
           <div class="grid" style="margin-top:14px;">
             <div class="card span-6" style="box-shadow:none;">
               <div style="font-weight:850;">Titre article #1 (exemple)</div>
-              <div class="muted" style="margin-top:6px;">
-                Résumé 2–3 lignes généré automatiquement (exemple). Source + date (plus tard).
-              </div>
+              <div class="muted" style="margin-top:6px;">Résumé 2–3 lignes (exemple).</div>
             </div>
 
             <div class="card span-6" style="box-shadow:none;">
               <div style="font-weight:850;">Titre article #2 (exemple)</div>
-              <div class="muted" style="margin-top:6px;">
-                Résumé 2–3 lignes généré automatiquement (exemple). Source + date (plus tard).
-              </div>
+              <div class="muted" style="margin-top:6px;">Résumé 2–3 lignes (exemple).</div>
             </div>
           </div>
         </div>
-
-        <!-- ALERTES + OPS -->
-        <div class="card span-6">
-          <div style="font-weight:900; letter-spacing:.2px;">🚨 Alertes prioritaires</div>
-          <div class="muted" style="margin-top:8px;">
-            (On branchera la liste + compteur via n8n.)
-          </div>
-          <div style="margin-top:12px;">
-            <a class="btn" href="./alerts.html">Ouvrir →</a>
-          </div>
-        </div>
-
-        <div class="card span-6">
-          <div style="font-weight:900; letter-spacing:.2px;">✅ Ops du jour</div>
-          <div class="muted" style="margin-top:8px;">
-            Checklists ouverture / service / fermeture.
-          </div>
-          <div style="margin-top:12px;">
-            <a class="btn primary" href="./ops.html">Ouvrir →</a>
-          </div>
-        </div>
-
       </div>
     </section>
   </main>
+
+  <!-- Script simple pour le bouton + -->
+  <script>
+    (function () {
+      const btn = document.getElementById('moreBtn');
+      const menu = document.getElementById('moreMenu');
+      if (!btn || !menu) return;
+
+      btn.addEventListener('click', () => {
+        const isOpen = menu.style.display === 'block';
+        menu.style.display = isOpen ? 'none' : 'block';
+        btn.setAttribute('aria-expanded', String(!isOpen));
+      });
+
+      // Fermer si on clique ailleurs
+      document.addEventListener('click', (e) => {
+        if (e.target === btn || menu.contains(e.target)) return;
+        menu.style.display = 'none';
+        btn.setAttribute('aria-expanded', 'false');
+      });
+    })();
+  </script>
 </body>
 </html>
