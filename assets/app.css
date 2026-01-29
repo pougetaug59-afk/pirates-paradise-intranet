@@ -4,15 +4,20 @@
   --pp-gold:#cfa34a;
 
   /* Dark Pirates Premium */
-  --bg:#050b14;                 /* fond global très sombre */
-  --card:#0a1324;               /* cartes */
-  --card-2:#0d1a31;             /* cartes “plus actives” */
-  --text:#eaf0ff;               /* texte principal */
-  --muted:#9fb0cf;              /* texte secondaire */
-  --border:rgba(207,163,74,.18);/* bordures avec une pointe d’or */
+  --bg:#050b14;
+  --card:#0a1324;
+  --card-2:#0d1a31;
+  --text:#eaf0ff;
+  --muted:#9fb0cf;
+
+  --border:rgba(207,163,74,.18);
+  --border-2:rgba(207,163,74,.28);
+
   --shadow:0 14px 40px rgba(0,0,0,.55);
+  --shadow-soft:0 10px 26px rgba(0,0,0,.35);
 
   --radius:16px;
+  --radius-pill:999px;
 }
 
 *{box-sizing:border-box}
@@ -20,9 +25,10 @@
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  background:radial-gradient(1200px 600px at 20% -10%, rgba(207,163,74,.10), transparent 55%),
-             radial-gradient(900px 500px at 90% 0%, rgba(5,38,68,.55), transparent 60%),
-             var(--bg);
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(207,163,74,.10), transparent 55%),
+    radial-gradient(900px 500px at 90% 0%, rgba(5,38,68,.55), transparent 60%),
+    var(--bg);
   color:var(--text);
 }
 
@@ -43,14 +49,14 @@ body{
 .card{
   background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
   background-color:var(--card);
-  border:1px solid rgba(207,163,74,.16);
+  border:1px solid var(--border);
   border-radius:var(--radius);
   box-shadow:var(--shadow);
   padding:16px;
 }
 
 .card:hover{
-  border-color:rgba(207,163,74,.28);
+  border-color:var(--border-2);
 }
 
 .muted{
@@ -70,9 +76,10 @@ body{
   z-index:50;
   background:rgba(5,11,20,.72);
   backdrop-filter:blur(12px);
-  border-bottom:1px solid rgba(207,163,74,.18);
+  border-bottom:1px solid var(--border);
 }
 
+/* Row 1 */
 .topbar-inner{
   display:flex;
   align-items:center;
@@ -80,6 +87,7 @@ body{
   gap:14px;
 }
 
+/* Brand */
 .brand{
   display:flex;
   gap:10px;
@@ -104,7 +112,6 @@ body{
   font-size:14px;
   letter-spacing:.2px;
 }
-
 .brand-sub{
   font-size:12px;
   color:var(--muted);
@@ -118,15 +125,16 @@ body{
 }
 
 .searchbox{
-  width:min(560px,100%);
+  width:min(760px,100%);
   background:rgba(10,19,36,.80);
-  border:1px solid rgba(207,163,74,.18);
-  padding:8px 12px;
-  border-radius:999px;
+  border:1px solid var(--border);
+  padding:9px 14px;
+  border-radius:var(--radius-pill);
   display:flex;
-  gap:8px;
+  gap:10px;
   align-items:center;
   color:var(--muted);
+  box-shadow:var(--shadow-soft);
 }
 
 .searchbox input{
@@ -145,45 +153,43 @@ body{
 .kbd{
   font-size:11px;
   padding:2px 8px;
-  border-radius:999px;
-  border:1px solid rgba(207,163,74,.22);
+  border-radius:var(--radius-pill);
+  border:1px solid var(--border);
   color:rgba(159,176,207,.9);
   background:rgba(5,11,20,.35);
 }
 
 /* Buttons */
 .btn{
-  border:1px solid rgba(207,163,74,.20);
+  border:1px solid var(--border);
   background:rgba(10,19,36,.70);
-  padding:8px 10px;
-  border-radius:12px;
+  padding:9px 12px;
+  border-radius:14px;
   font-size:13px;
   cursor:pointer;
   text-decoration:none;
   color:var(--text);
   display:inline-flex;
   align-items:center;
-  gap:6px;
-  transition:transform .08s ease, border-color .12s ease, background .12s ease;
+  gap:8px;
+  transition:transform .08s ease, border-color .12s ease, background .12s ease, box-shadow .12s ease;
+  box-shadow:0 8px 18px rgba(0,0,0,.22);
 }
 
 .btn:hover{
-  border-color:rgba(207,163,74,.38);
+  border-color:var(--border-2);
   background:rgba(13,26,49,.72);
+  box-shadow:0 12px 28px rgba(0,0,0,.28);
 }
+.btn:active{ transform:translateY(1px); }
 
-.btn:active{
-  transform:translateY(1px);
-}
-
-/* “Primary” = bouton trésor (or) */
+/* Primary = or */
 .primary{
   background:linear-gradient(135deg, rgba(207,163,74,1), rgba(207,163,74,.68));
   color:#0a1220;
   border-color:rgba(207,163,74,.85);
-  font-weight:800;
+  font-weight:900;
 }
-
 .primary:hover{
   background:linear-gradient(135deg, rgba(227,190,108,1), rgba(207,163,74,.78));
   border-color:rgba(227,190,108,.95);
@@ -191,43 +197,69 @@ body{
 
 /* Select */
 .select{
-  border:1px solid rgba(207,163,74,.20);
-  border-radius:12px;
-  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:9px 12px;
   font-size:13px;
   background:rgba(10,19,36,.70);
   color:var(--text);
+  box-shadow:0 8px 18px rgba(0,0,0,.22);
 }
 
-/* Nav */
+/* ====== NEW : Onglets “beaux” (style intranet) ====== */
+/* Utilise tes .nav-link existants, mais en mode “pills premium” quand ils sont dans le header */
+.topbar .nav-link{
+  text-decoration:none;
+  font-size:13px;
+  color:rgba(234,240,255,.86);
+  padding:9px 14px;
+  border-radius:var(--radius-pill);
+  border:1px solid rgba(207,163,74,.10);
+  background:rgba(10,19,36,.40);
+  box-shadow:0 8px 18px rgba(0,0,0,.18);
+  transition:background .12s ease, border-color .12s ease, transform .08s ease;
+}
+.topbar .nav-link:hover{
+  background:rgba(13,26,49,.55);
+  border-color:var(--border-2);
+}
+.topbar .nav-link:active{ transform:translateY(1px); }
+
+/* “Actif” (si tu veux le mettre en inline style font-weight ou plus tard via JS) */
+.topbar .nav-link.is-active{
+  background:linear-gradient(135deg, rgba(207,163,74,.25), rgba(10,19,36,.55));
+  border-color:rgba(207,163,74,.40);
+}
+
+/* Menu “+” dropdown : rend le bloc plus propre */
+#moreMenu{
+  box-shadow:var(--shadow-soft);
+  border:1px solid var(--border);
+}
+
+/* Nav (secondaire en dessous si tu en as sur certaines pages) */
 .nav{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
   margin:14px 0;
 }
-
 .nav-link{
   text-decoration:none;
   font-size:13px;
   color:rgba(159,176,207,.92);
   padding:6px 10px;
-  border-radius:999px;
+  border-radius:var(--radius-pill);
   border:1px solid transparent;
   background:transparent;
   transition:border-color .12s ease, background .12s ease, color .12s ease;
 }
-
 .nav-link:hover{
   color:var(--text);
-  border-color:rgba(207,163,74,.22);
+  border-color:var(--border);
   background:rgba(10,19,36,.55);
 }
-
-.nav-sep{
-  flex-basis:100%;
-  height:0;
-}
+.nav-sep{ flex-basis:100%; height:0; }
 
 /* Page head */
 .page-head{
@@ -239,14 +271,14 @@ body{
   margin-bottom:14px;
 }
 
-/* Small code style */
+/* Code */
 code{
   font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
   font-size:12px;
   padding:2px 6px;
-  border-radius:8px;
+  border-radius:10px;
   background:rgba(10,19,36,.65);
-  border:1px solid rgba(207,163,74,.18);
+  border:1px solid var(--border);
   color:rgba(234,240,255,.95);
 }
 
