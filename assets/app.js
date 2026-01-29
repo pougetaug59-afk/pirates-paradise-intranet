@@ -1,196 +1,175 @@
-/* =========================================================
-   Pirates Paradise — Intranet MVP Core
-   assets/app.js
-   - Navigation active
-   - Role persistence
-   - Search redirect
-   - Live data fetch from n8n
-   - Auto-refresh every 5 min
-========================================================= */
+(() => {
+  // =========================
+  // Helpers
+  // =========================
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-/* ===== CONFIG ENDPOINTS (à brancher progressivement) ===== */
+  function safeText(el, txt) {
+    if (el) el.textContent = txt;
+  }
 
-const TOKEN = "pp_lille_59"; // ton token actuel
+  // =========================
+  // 1) Sous-titre : date du jour (si #subtitle existe)
+  // =========================
+  const subtitle = $("#subtitle");
+  if (subtitle) {
+    const fr = new Intl.DateTimeFormat("fr-FR", { dateStyle: "full" }).format(new Date());
+    subtitle.textContent = fr;
+  }
 
-const ENDPOINTS = {
-  home: `https://pp.autopdm.fr/webhook/pp/dashboard?token=${TOKEN}`,
-
-  // Pages à brancher ensuite dans n8n :
-  ca: `https://pp.autopdm.fr/webhook/pp/ca?token=${TOKEN}`,
-  frequentation: `https://pp.autopdm.fr/webhook/pp/frequentation?token=${TOKEN}`,
-  alerts: `https://pp.autopdm.fr/webhook/pp/alerts?token=${TOKEN}`,
-  ops: `https://pp.autopdm.fr/webhook/pp/ops?token=${TOKEN}`,
-  docs: `https://pp.autopdm.fr/webhook/pp/docs?token=${TOKEN}`,
-  tools: `https://pp.autopdm.fr/webhook/pp/tools?token=${TOKEN}`,
-
-  // Modules futurs
-  crm: `https://pp.autopdm.fr/webhook/pp/crm?token=${TOKEN}`,
-  b2b: `https://pp.autopdm.fr/webhook/pp/b2b?token=${TOKEN}`,
-  rh: `https://pp.autopdm.fr/webhook/pp/rh?token=${TOKEN}`,
-  finance: `https://pp.autopdm.fr/webhook/pp/finance?token=${TOKEN}`,
-  com: `https://pp.autopdm.fr/webhook/pp/com?token=${TOKEN}`,
-  gifts: `https://pp.autopdm.fr/webhook/pp/gifts?token=${TOKEN}`,
-};
-
-const REFRESH_MS = 5 * 60 * 1000; // auto-refresh 5 minutes
-
-/* ===== HELPERS ===== */
-
-const eur = (n) =>
-  n == null
-    ? "—"
-    : new Intl.NumberFormat("fr-FR", {
-        style: "currency",
-        currency: "EUR",
-      }).format(n);
-
-function $(id) {
-  return document.getElementById(id);
-}
-
-/* ===== UI INIT ===== */
-
-function setSubtitle() {
-  const sub = $("subtitle");
-  if (!sub) return;
-
-  const now = new Intl.DateTimeFormat("fr-FR", {
-    dateStyle: "full",
-  }).format(new Date());
-
-  sub.textContent = now;
-}
-
-function setActiveNav(page) {
-  document.querySelectorAll(".nav-link").forEach((link) => {
-    link.classList.toggle("active", link.dataset.nav === page);
-  });
-}
-
-/* ===== ROLE (MVP simple) ===== */
-
-function initRoleSelect() {
-  const roleSelect = $("roleSelect");
-  if (!roleSelect) return;
-
-  // load saved role
-  const saved = localStorage.getItem("pp_role");
-  if (saved) roleSelect.value = saved;
-
-  // persist role
-  roleSelect.addEventListener("change", () => {
-    localStorage.setItem("pp_role", roleSelect.value);
-  });
-}
-
-/* ===== SEARCH MVP ===== */
-
-function initSearch() {
-  const input = $("searchInput");
-  if (!input) return;
-
-  const pages = [
-    { name: "Dashboard", href: "./index.html" },
-    { name: "CA", href: "./ca.html" },
-    { name: "Fréquentation", href: "./frequentation.html" },
-    { name: "Alertes", href: "./alerts.html" },
-    { name: "Ops", href: "./ops.html" },
-    { name: "Docs", href: "./docs.html" },
-    { name: "Outils", href: "./tools.html" },
-    { name: "CRM", href: "./crm.html" },
-    { name: "B2B", href: "./b2b.html" },
-    { name: "RH", href: "./rh.html" },
-    { name: "Compta", href: "./finance.html" },
-    { name: "Com", href: "./com.html" },
-    { name: "Bons cadeaux", href: "./gifts.html" },
-    { name: "Réglages", href: "./settings.html" },
-  ];
-
-  input.addEventListener("keydown", (e) => {
-    if (e.key !== "Enter") return;
-
-    const q = input.value.trim().toLowerCase();
-    if (!q) return;
-
-    const match = pages.find((p) =>
-      p.name.toLowerCase().includes(q)
-    );
-
-    if (match) window.location.href = match.href;
-  });
-}
-
-/* ===== FETCH DATA ===== */
-
-async function fetchJSON(url) {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error("HTTP " + res.status);
-  return await res.json();
-}
-
-/* ===== MAIN LOADER ===== */
-
-async function loadPageData() {
-  const page = document.body.dataset.page || "home";
-
-  setActiveNav(page);
-  setSubtitle();
-
-  const endpoint = ENDPOINTS[page];
-  if (!endpoint) return;
-
+  // =========================
+  // 2) Mettre en évidence le lien actif
+  // - Compatible avec .nav-link (onglets) et liens simples
+  // - Ajoute la classe .is-active si possible (sinon fallback inline)
+  // =========================
   try {
-    const data = await fetchJSON(endpoint);
+    const current = (location.pathname.split("/").pop() || "index.html").toLowerCase();
 
-    // dernière mise à jour affichée
-    if ($("lastUpdate")) {
-      $("lastUpdate").textContent =
-        data.lastUpdate || data?.last?.date || "—";
-    }
-
-    // HOME KPIs (seulement si les IDs existent)
-    if (data.last) {
-      const last = data.last;
-
-      if ($("kpi_ca_day")) $("kpi_ca_day").textContent = eur(last.ca_day);
-      if ($("kpi_ca_wtd"))
-        $("kpi_ca_wtd").textContent = eur(last.ca_week_to_date);
-      if ($("kpi_ca_mtd"))
-        $("kpi_ca_mtd").textContent = eur(last.ca_month_to_date);
-
-      if ($("kpi_covers_day"))
-        $("kpi_covers_day").textContent =
-          last.covers_day ?? "—";
-
-      if ($("kpi_tm_day"))
-        $("kpi_tm_day").textContent =
-          eur(last.avg_ticket_day);
-
-      if ($("kpi_focus")) {
-        $("kpi_focus").textContent =
-          last.ca_day_vs_n1_pct < -10
-            ? "⚠️ Baisse CA aujourd’hui"
-            : "✅ Situation normale";
+    $$(".nav-link").forEach((a) => {
+      const href = (a.getAttribute("href") || "").split("?")[0].toLowerCase();
+      if (href === current) {
+        a.classList.add("is-active");
+        // Fallback (si ton CSS n’applique rien sur .is-active)
+        a.style.fontWeight = "800";
+      } else {
+        a.classList.remove("is-active");
       }
-    }
+    });
+  } catch (e) {
+    // pas bloquant
+  }
 
-  } catch (err) {
-    console.warn("API indisponible :", err);
+  // =========================
+  // 3) Menu "Plus" (si présent)
+  // =========================
+  function initMoreMenu() {
+    const btn = $("#moreBtn");
+    const menu = $("#moreMenu");
+    if (!btn || !menu) return;
 
-    if ($("kpi_focus")) {
-      $("kpi_focus").textContent = "API indisponible";
+    const close = () => {
+      menu.style.display = "none";
+      btn.setAttribute("aria-expanded", "false");
+    };
+
+    const open = () => {
+      menu.style.display = "block";
+      btn.setAttribute("aria-expanded", "true");
+    };
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isOpen = menu.style.display === "block";
+      if (isOpen) close();
+      else open();
+    });
+
+    // Fermer au clic ailleurs
+    document.addEventListener("click", (e) => {
+      if (e.target === btn || menu.contains(e.target)) return;
+      close();
+    });
+
+    // Fermer avec ESC (accessibilité)
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") close();
+    });
+  }
+  initMoreMenu();
+
+  // =========================
+  // 4) Recherche (mock) : Entrée => redirection simple
+  // =========================
+  function initSearchShortcuts() {
+    const input = $("#searchInput");
+    if (!input) return;
+
+    const routes = [
+      { test: ["ca", "chiffre", "revenu"], href: "./ca.html" },
+      { test: ["fréquentation", "couverts", "covers"], href: "./frequentation.html" },
+      { test: ["incident", "maintenance", "ops", "checklist"], href: "./operations.html" },
+      { test: ["doc", "procédure", "procedure", "ressource"], href: "./docs.html" },
+      { test: ["rh", "onboarding", "contrat"], href: "./rh.html" },
+      { test: ["b2b", "entreprise", "cse"], href: "./b2b.html" },
+      { test: ["réglage", "settings", "param"], href: "./settings.html" },
+      { test: ["outil", "tools"], href: "./tools.html" },
+      { test: ["alerte", "alerts"], href: "./alerts.html" },
+    ];
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      const q = (input.value || "").trim().toLowerCase();
+      if (!q) return;
+
+      const found = routes.find((r) => r.test.some((k) => q.includes(k)));
+      if (found) {
+        location.href = found.href;
+      } else {
+        // fallback : si rien trouvé, on va vers docs (logique “base de connaissance”)
+        location.href = "./docs.html";
+      }
+    });
+  }
+  initSearchShortcuts();
+
+  // =========================
+  // 5) Charger data/dashboard.json (si dispo)
+  // =========================
+  async function loadDashboardData() {
+    try {
+      // Cache-busting : force le navigateur à recharger le JSON
+      const url = `data/dashboard.json?v=${Date.now()}`;
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error("dashboard.json HTTP " + res.status);
+
+      const data = await res.json();
+
+      // Formatters
+      const eur = (n) =>
+        (n == null
+          ? "—"
+          : new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(Number(n)));
+
+      const fmt = (n) =>
+        (n == null ? "—" : new Intl.NumberFormat("fr-FR").format(Number(n)));
+
+      // Dernière mise à jour (si présent)
+      safeText($("#lastUpdate"), data.updated_at ? data.updated_at : "—");
+
+      // KPIs génériques (si IDs existent sur la page)
+      // NOTE: Ces IDs existent sur certaines pages (ancien dashboard / nouvelles pages)
+      const caDay = $("#kpi_ca_day");
+      if (caDay) caDay.textContent = eur(data.ca_day);
+
+      const coversDay = $("#kpi_covers_day");
+      if (coversDay) coversDay.textContent = fmt(data.covers_day);
+
+      const avgTicket = $("#kpi_tm_day");
+      if (avgTicket) avgTicket.textContent = eur(data.avg_ticket);
+
+      // Optionnel : focus/alertes (si présent)
+      const focus = $("#kpi_focus");
+      if (focus) {
+        const alerts = Number(data.alerts_count || 0);
+        focus.textContent = alerts > 0 ? `⚠️ ${alerts} alerte(s) à traiter` : "✅ RAS (aucune alerte)";
+      }
+
+      console.log("[PP OS] data/dashboard.json chargé ✅", data);
+    } catch (e) {
+      console.warn("[PP OS] Impossible de charger data/dashboard.json", e);
+
+      safeText($("#lastUpdate"), "indisponible");
+
+      const focus = $("#kpi_focus");
+      if (focus) focus.textContent = "⚠️ Données indisponibles (dashboard.json)";
     }
   }
-}
 
-/* ===== BOOT ===== */
+  // Load au démarrage
+  loadDashboardData();
 
-window.addEventListener("DOMContentLoaded", () => {
-  initRoleSelect();
-  initSearch();
-
-  loadPageData();
-
-  // Auto refresh every 5 min
-  setInterval(loadPageData, REFRESH_MS);
-});
+  // Refresh auto toutes les 2 minutes (MVP)
+  setInterval(loadDashboardData, 2 * 60 * 1000);
+})();
