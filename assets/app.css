@@ -1,289 +1,321 @@
+/* =========================================================
+   Pirates Paradise OS — app.css (RESET COMPLET V1)
+   Objectif: base UI premium dark, lisible, stable, réutilisable
+   Dépendances: aucune
+   ========================================================= */
+
+/* -------------------------
+   1) Variables (Design system)
+   ------------------------- */
 :root{
   /* Brand */
-  --pp-navy:#052644;
-  --pp-gold:#cfa34a;
+  --navy-950: #050b14;  /* très sombre (rare) */
+  --navy-900: #071326;  /* fond principal */
+  --navy-850: #0a1930;  /* surfaces */
+  --navy-800: #0d2240;  /* hover surfaces */
+  --gold-500: #cfa34a;  /* accent */
+  --gold-400: #e3be6c;  /* highlight */
+  --parchment: #f5f0e6; /* référence */
 
-  /* Dark Pirates Premium */
-  --bg:#050b14;
-  --card:#0a1324;
-  --card-2:#0d1a31;
-  --text:#eaf0ff;
-  --muted:#9fb0cf;
+  /* Text */
+  --text-100: rgba(234,240,255,.95);
+  --text-200: rgba(234,240,255,.86);
+  --text-300: rgba(180,195,222,.95); /* texte secondaire lisible */
+  --text-400: rgba(159,176,207,.92); /* muted */
+  --text-500: rgba(159,176,207,.70);
 
-  --border:rgba(207,163,74,.18);
-  --border-2:rgba(207,163,74,.28);
+  /* Borders / shadows */
+  --border-1: rgba(207,163,74,.14);
+  --border-2: rgba(207,163,74,.22);
+  --shadow-soft: 0 10px 30px rgba(0,0,0,.25);
 
-  --shadow:0 14px 40px rgba(0,0,0,.55);
-  --shadow-soft:0 10px 26px rgba(0,0,0,.35);
+  /* Radius */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 16px;
+  --r-xl: 18px;
 
-  --radius:16px;
-  --radius-pill:999px;
+  /* Spacing (8px grid) */
+  --s-1: 8px;
+  --s-2: 12px;
+  --s-3: 16px;
+  --s-4: 18px;
+  --s-5: 24px;
+  --s-6: 32px;
+
+  /* Container */
+  --container: 1120px;
+
+  /* Focus ring */
+  --focus: rgba(207,163,74,.45);
 }
 
-*{box-sizing:border-box}
-
+/* -------------------------
+   2) Reset + base
+   ------------------------- */
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
 body{
   margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  background:
-    radial-gradient(1200px 600px at 20% -10%, rgba(207,163,74,.10), transparent 55%),
-    radial-gradient(900px 500px at 90% 0%, rgba(5,38,68,.55), transparent 60%),
-    var(--bg);
-  color:var(--text);
+  color:var(--text-100);
+  background: var(--navy-900);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Layout */
+/* Links */
+a{
+  color:inherit;
+  text-decoration:none;
+}
+a:hover{ text-decoration:none; }
+
+/* Images */
+img{ max-width:100%; height:auto; }
+
+/* Forms */
+input, button, textarea, select{
+  font:inherit;
+  color:inherit;
+}
+button{ cursor:pointer; }
+
+/* Focus visible (accessibilité) */
+:focus{ outline:none; }
+:focus-visible{
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Small helpers */
+.muted{ color:var(--text-400); }
+.hidden{ display:none !important; }
+
+/* -------------------------
+   3) Layout
+   ------------------------- */
 .container{
-  max-width:1200px;
-  margin:0 auto;
-  padding:18px;
+  width:min(var(--container), calc(100% - 32px));
+  margin-inline:auto;
 }
 
-.grid{
-  display:grid;
-  grid-template-columns:repeat(12,1fr);
-  gap:14px;
-}
-
-/* Cards */
 .card{
-  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-  background-color:var(--card);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:16px;
+  border: 1px solid var(--border-1);
+  background: rgba(10,19,36,.28);
+  border-radius: var(--r-lg);
+  padding: var(--s-3);
+  box-shadow: none;
 }
 
-.card:hover{
-  border-color:var(--border-2);
-}
-
-.muted{
-  color:var(--muted);
-  font-size:13px;
-}
-
-/* Span helpers */
-.span-12{grid-column:span 12}
-.span-6{grid-column:span 6}
-.span-4{grid-column:span 4}
-
-/* Topbar */
+/* -------------------------
+   4) Topbar / Header
+   ------------------------- */
 .topbar{
-  position:sticky;
-  top:0;
-  z-index:50;
-  background:rgba(5,11,20,.72);
-  backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background:
+    radial-gradient(900px 520px at 15% -10%, rgba(207,163,74,.10), transparent 55%),
+    radial-gradient(720px 420px at 90% 0%, rgba(5,38,68,.35), transparent 60%),
+    rgba(7,19,38,.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(207,163,74,.10);
 }
 
-/* Row 1 */
 .topbar-inner{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:14px;
+  padding-top: var(--s-3);
+  padding-bottom: var(--s-2);
 }
 
-/* Brand */
 .brand{
   display:flex;
-  gap:10px;
   align-items:center;
+  gap: 12px;
 }
 
 .logo{
-  width:38px;
-  height:38px;
-  border-radius:14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-weight:900;
-  background:linear-gradient(135deg, rgba(207,163,74,.95), rgba(207,163,74,.55));
-  color:#0a1220;
-  box-shadow:0 10px 26px rgba(207,163,74,.25);
+  font-weight: 950;
+  letter-spacing: .3px;
+  color: rgba(255,255,255,.95);
+  border: 1px solid rgba(207,163,74,.18);
+  background:
+    radial-gradient(18px 18px at 30% 30%, rgba(227,190,108,.28), transparent 60%),
+    linear-gradient(135deg, rgba(10,19,36,.65), rgba(5,11,20,.45));
 }
 
 .brand-title{
-  font-weight:900;
-  font-size:14px;
-  letter-spacing:.2px;
+  font-weight: 950;
+  letter-spacing: .2px;
+  line-height: 1.1;
 }
 .brand-sub{
-  font-size:12px;
-  color:var(--muted);
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-400);
 }
 
-/* Search */
-.search{
-  flex:1;
-  display:flex;
-  justify-content:center;
-}
-
-.searchbox{
-  width:min(760px,100%);
-  background:rgba(10,19,36,.80);
-  border:1px solid var(--border);
-  padding:9px 14px;
-  border-radius:var(--radius-pill);
-  display:flex;
-  gap:10px;
-  align-items:center;
-  color:var(--muted);
-  box-shadow:var(--shadow-soft);
-}
-
-.searchbox input{
-  border:none;
-  outline:none;
-  width:100%;
-  font-size:13px;
-  background:transparent;
-  color:var(--text);
-}
-
-.searchbox input::placeholder{
-  color:rgba(159,176,207,.75);
-}
-
-.kbd{
-  font-size:11px;
-  padding:2px 8px;
-  border-radius:var(--radius-pill);
-  border:1px solid var(--border);
-  color:rgba(159,176,207,.9);
-  background:rgba(5,11,20,.35);
-}
-
-/* Buttons */
-.btn{
-  border:1px solid var(--border);
-  background:rgba(10,19,36,.70);
-  padding:9px 12px;
-  border-radius:14px;
-  font-size:13px;
-  cursor:pointer;
-  text-decoration:none;
-  color:var(--text);
+/* -------------------------
+   5) Navigation links
+   ------------------------- */
+.nav-link{
   display:inline-flex;
   align-items:center;
-  gap:8px;
-  transition:transform .08s ease, border-color .12s ease, background .12s ease, box-shadow .12s ease;
-  box-shadow:0 8px 18px rgba(0,0,0,.22);
+  justify-content:center;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(207,163,74,.10);
+  background: rgba(10,19,36,.22);
+  color: var(--text-200);
+  transition: border-color .12s ease, background .12s ease, transform .08s ease;
+}
+
+.nav-link:hover{
+  border-color: rgba(207,163,74,.22);
+  background: rgba(13,26,49,.32);
+}
+
+.nav-link:active{
+  transform: translateY(1px);
+}
+
+.nav-link.is-active,
+.nav-link[aria-current="page"]{
+  border-color: rgba(207,163,74,.30);
+  background:
+    radial-gradient(240px 60px at 30% 0%, rgba(227,190,108,.16), transparent 60%),
+    rgba(13,26,49,.38);
+  color: rgba(255,255,255,.95);
+  font-weight: 900;
+}
+
+/* -------------------------
+   6) Buttons
+   ------------------------- */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(207,163,74,.14);
+  background: rgba(10,19,36,.24);
+  color: rgba(255,255,255,.92);
+  font-weight: 800;
+  letter-spacing: .1px;
+  transition: border-color .12s ease, background .12s ease, transform .08s ease;
+  user-select:none;
 }
 
 .btn:hover{
-  border-color:var(--border-2);
-  background:rgba(13,26,49,.72);
-  box-shadow:0 12px 28px rgba(0,0,0,.28);
-}
-.btn:active{ transform:translateY(1px); }
-
-/* Primary = or */
-.primary{
-  background:linear-gradient(135deg, rgba(207,163,74,1), rgba(207,163,74,.68));
-  color:#0a1220;
-  border-color:rgba(207,163,74,.85);
-  font-weight:900;
-}
-.primary:hover{
-  background:linear-gradient(135deg, rgba(227,190,108,1), rgba(207,163,74,.78));
-  border-color:rgba(227,190,108,.95);
+  border-color: rgba(207,163,74,.26);
+  background: rgba(13,26,49,.34);
 }
 
-/* Select */
-.select{
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:9px 12px;
-  font-size:13px;
-  background:rgba(10,19,36,.70);
-  color:var(--text);
-  box-shadow:0 8px 18px rgba(0,0,0,.22);
+.btn:active{ transform: translateY(1px); }
+
+.btn.primary{
+  border-color: rgba(207,163,74,.38);
+  background:
+    radial-gradient(240px 60px at 30% 0%, rgba(255,255,255,.16), transparent 60%),
+    linear-gradient(135deg, rgba(207,163,74,.95), rgba(227,190,108,.82));
+  color: rgba(7,19,38,.98);
+  box-shadow: 0 10px 22px rgba(0,0,0,.22);
 }
 
-/* ====== NEW : Onglets “beaux” (style intranet) ====== */
-/* Utilise tes .nav-link existants, mais en mode “pills premium” quand ils sont dans le header */
-.topbar .nav-link{
-  text-decoration:none;
-  font-size:13px;
-  color:rgba(234,240,255,.86);
-  padding:9px 14px;
-  border-radius:var(--radius-pill);
-  border:1px solid rgba(207,163,74,.10);
-  background:rgba(10,19,36,.40);
-  box-shadow:0 8px 18px rgba(0,0,0,.18);
-  transition:background .12s ease, border-color .12s ease, transform .08s ease;
-}
-.topbar .nav-link:hover{
-  background:rgba(13,26,49,.55);
-  border-color:var(--border-2);
-}
-.topbar .nav-link:active{ transform:translateY(1px); }
-
-/* “Actif” (si tu veux le mettre en inline style font-weight ou plus tard via JS) */
-.topbar .nav-link.is-active{
-  background:linear-gradient(135deg, rgba(207,163,74,.25), rgba(10,19,36,.55));
-  border-color:rgba(207,163,74,.40);
+.btn.primary:hover{
+  filter: brightness(1.02);
+  border-color: rgba(207,163,74,.55);
 }
 
-/* Menu “+” dropdown : rend le bloc plus propre */
-#moreMenu{
-  box-shadow:var(--shadow-soft);
-  border:1px solid var(--border);
+.btn.primary:focus-visible{
+  outline-color: rgba(255,255,255,.55);
 }
 
-/* Nav (secondaire en dessous si tu en as sur certaines pages) */
-.nav{
+/* -------------------------
+   7) Search
+   ------------------------- */
+.search{
+  margin-top: 10px;
+}
+
+.searchbox{
   display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin:14px 0;
-}
-.nav-link{
-  text-decoration:none;
-  font-size:13px;
-  color:rgba(159,176,207,.92);
-  padding:6px 10px;
-  border-radius:var(--radius-pill);
-  border:1px solid transparent;
-  background:transparent;
-  transition:border-color .12s ease, background .12s ease, color .12s ease;
-}
-.nav-link:hover{
-  color:var(--text);
-  border-color:var(--border);
-  background:rgba(10,19,36,.55);
-}
-.nav-sep{ flex-basis:100%; height:0; }
-
-/* Page head */
-.page-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-end;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-bottom:14px;
+  align-items:center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(207,163,74,.14);
+  background: rgba(10,19,36,.20);
 }
 
-/* Code */
-code{
-  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-  font-size:12px;
-  padding:2px 6px;
-  border-radius:10px;
-  background:rgba(10,19,36,.65);
-  border:1px solid var(--border);
-  color:rgba(234,240,255,.95);
+.searchbox input{
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: rgba(255,255,255,.95);
 }
 
-/* Responsive */
-@media(max-width:900px){
-  .span-6,.span-4{grid-column:span 12}
-  .search{display:none}
+.searchbox input::placeholder{
+  color: rgba(180,195,222,.75);
+}
+
+.kbd{
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(207,163,74,.16);
+  background: rgba(5,11,20,.25);
+  color: rgba(234,240,255,.86);
+  white-space: nowrap;
+}
+
+/* -------------------------
+   8) Tables / misc (safe defaults)
+   ------------------------- */
+table{
+  width:100%;
+  border-collapse: collapse;
+}
+th, td{
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(207,163,74,.10);
+}
+th{
+  text-align:left;
+  font-size: 12px;
+  color: var(--text-300);
+  letter-spacing: .2px;
+  font-weight: 900;
+}
+td{
+  color: var(--text-200);
+  font-size: 13px;
+}
+
+/* -------------------------
+   9) Responsive
+   ------------------------- */
+@media (max-width: 900px){
+  .topbar-inner{
+    padding-top: var(--s-2);
+    padding-bottom: var(--s-2);
+  }
+  .brand{ min-width: 0; }
+  .brand-title{ font-size: 14px; }
+  .logo{ width: 36px; height: 36px; border-radius: 12px; }
+
+  /* Sur mobile, on laisse la home décider (ton index cache déjà la search),
+     mais on reste safe si une page la garde */
+  .searchbox{
+    padding: 10px 12px;
+  }
 }
