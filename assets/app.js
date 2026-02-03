@@ -1,14 +1,45 @@
 (() => {
   // =========================
-  // CONFIG
+  // Helpers
   // =========================
-  const DASHBOARD_URL = "https://pp.autopdm.fr/webhook/pp/dashboard?token=pp_lille_59";
-
-  // Petit helper
   const $ = (sel) => document.querySelector(sel);
 
+  function fmtEUR(n) {
+    if (n === null || n === undefined || n === "" || Number.isNaN(Number(n))) return "—";
+    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(Number(n));
+  }
+
+  function fmtINT(n) {
+    if (n === null || n === undefined || n === "" || Number.isNaN(Number(n))) return "—";
+    return new Intl.NumberFormat("fr-FR").format(Math.round(Number(n)));
+  }
+
+  function fmtPCT(n) {
+    if (n === null || n === undefined || n === "" || Number.isNaN(Number(n))) return "—";
+    const num = Number(n);
+    const sign = num > 0 ? "+" : "";
+    return `${sign}${num.toFixed(1)}%`;
+  }
+
+  function fmtISODateTime(iso) {
+    if (!iso) return "—";
+    try {
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return String(iso);
+      return new Intl.DateTimeFormat("fr-FR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(d);
+    } catch {
+      return String(iso);
+    }
+  }
+
   // =========================
-  // UI: subtitle date
+  // UI header (subtitle date)
   // =========================
   const subtitle = $("#subtitle");
   if (subtitle) {
@@ -16,9 +47,7 @@
     subtitle.textContent = fr;
   }
 
-  // =========================
-  // UI: nav active
-  // =========================
+  // Active nav link
   const path = (location.pathname.split("/").pop() || "index.html").toLowerCase();
   document.querySelectorAll(".nav-link").forEach((a) => {
     const href = (a.getAttribute("href") || "").toLowerCase();
@@ -28,58 +57,56 @@
   });
 
   // =========================
-  // Formatters
+  // WEBHOOK CONFIG
   // =========================
-  const fmtEUR = (n) => {
-    if (n == null || Number.isNaN(Number(n))) return "—";
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(Number(n));
-  };
+  const DASHBOARD_URL = "https://pp.autopdm.fr/webhook/pp/dashboard?token=pp_lille_59";
 
-  const fmtINT = (n) => {
-    if (n == null || Number.isNaN(Number(n))) return "—";
-    return new Intl.NumberFormat("fr-FR").format(Number(n));
-  };
+  async function fetchDashboard() {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 12000);
 
-  const fmtPCT = (n) => {
-    if (n == null || Number.isNaN(Number(n))) return "—";
-    const v = Number(n);
-    const sign = v > 0 ? "+" : "";
-    return `${sign}${v.toFixed(1)}%`;
-  };
-
-  const fmtISODateTime = (iso) => {
-    if (!iso) return "—";
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return String(iso);
-    return d.toLocaleString("fr-FR");
-  };
+    try {
+      const res = await fetch(`${DASHBOARD_URL}&_=${Date.now()}`, {
+        cache: "no-store",
+        signal: ctrl.signal,
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      console.log("[PP OS] Webhook dashboard OK ✅", data);
+      return data;
+    } catch (e) {
+      console.warn("[PP OS] Webhook dashboard KO ❌", e);
+      return null;
+    } finally {
+      clearTimeout(t);
+    }
+  }
 
   // =========================
-  // Chart (home)
+  // HOME hydration (robuste : premium + ancien MVP)
   // =========================
-  let ca7ChartInstance = null;
-
   function renderHomeChart(history) {
+    // Si Chart.js n’est pas chargé sur la page, on skip.
+    if (!window.Chart) return;
+
     const canvas = $("#ca7Chart");
-    if (!canvas) return; // pas la home
+    if (!canvas) return;
 
-    if (typeof Chart === "undefined") {
-      console.warn("[PP OS] Chart.js non chargé");
-      return;
+    // Prendre les 7 derniers jours de l'history (si dispo)
+    const arr = Array.isArray(history) ? history.slice(-7) : [];
+    if (!arr.length) return;
+
+    const labels = arr.map((x) => (x.date || "").slice(5)); // "MM-DD"
+    const values = arr.map((x) => Number(x.ca_day || 0));
+
+    // Détruire un chart existant si on recharge
+    if (canvas.__chart) {
+      canvas.__chart.destroy();
+      canvas.__chart = null;
     }
 
-    // Prendre les 7 derniers points dispo
-    const last7 = (Array.isArray(history) ? history : []).slice(-7);
-    const labels = last7.map((x) => (x.date ? x.date.slice(5) : "")); // MM-DD
-    const values = last7.map((x) => Number(x.ca_day || 0));
-
-    // Détruire l’ancien chart si refresh
-    if (ca7ChartInstance) {
-      ca7ChartInstance.destroy();
-      ca7ChartInstance = null;
-    }
-
-    ca7ChartInstance = new Chart(canvas, {
+    const ctx = canvas.getContext("2d");
+    canvas.__chart = new Chart(ctx, {
       type: "line",
       data: {
         labels,
@@ -101,23 +128,26 @@
     });
   }
 
-  // =========================
-  // Home KPIs mapping (index.html)
-  // =========================
   function hydrateHome(payload) {
     console.log("PAYLOAD RECU =", payload);
-console.log("LAST =", payload.last);
+    console.log("LAST =", payload?.last);
 
     const last = payload?.last || {};
 
-    // Badges footer (si présents)
-    const osUpdated = $("#osUpdated");
-    if (osUpdated) osUpdated.textContent = fmtISODateTime(payload?.updatedAt);
+    // ---- Badges / footer / dates
+    const osUpdated = $("#osUpdated") || $("#lastUpdate");
+    if (osUpdated) {
+      // ton payload = updatedAt (ISO)
+      osUpdated.textContent = fmtISODateTime(payload?.updatedAt);
+    }
 
     const osVersion = $("#osVersion");
     if (osVersion) osVersion.textContent = "live";
 
-    // KPI cards (tes IDs sur la home)
+    const badgeToday = $("#badgeToday");
+    if (badgeToday && last.date) badgeToday.textContent = `📅 ${last.date}`;
+
+    // ---- KPIs (NOUVELLE HOME premium)
     const kpiCa = $("#kpiCa");
     if (kpiCa) kpiCa.textContent = fmtEUR(last.ca_day);
 
@@ -128,7 +158,6 @@ console.log("LAST =", payload.last);
     if (kpiCovers) kpiCovers.textContent = fmtINT(last.covers_day);
 
     const kpiCoversMeta = $("#kpiCoversMeta");
-    // Ton webhook ne donne pas covers_day_n1 pour l’instant → on met —
     if (kpiCoversMeta) kpiCoversMeta.textContent = `vs N-1 : —`;
 
     const kpiTm = $("#kpiTm");
@@ -137,7 +166,6 @@ console.log("LAST =", payload.last);
     const kpiTmMeta = $("#kpiTmMeta");
     if (kpiTmMeta) kpiTmMeta.textContent = `objectif : —`;
 
-    // Objectif (pas encore dans ton payload)
     const kpiGoal = $("#kpiGoal");
     if (kpiGoal) kpiGoal.textContent = "—";
 
@@ -147,49 +175,44 @@ console.log("LAST =", payload.last);
     const kpiGoalMeta = $("#kpiGoalMeta");
     if (kpiGoalMeta) kpiGoalMeta.textContent = "—";
 
-    // Optionnel : afficher clairement la date de “last”
-    const badgeToday = $("#badgeToday");
-    if (badgeToday && last.date) badgeToday.textContent = `📅 ${last.date}`;
+    // ---- KPIs (ANCIENNE HOME MVP)
+    const oldCa = $("#kpi_ca_day");
+    if (oldCa) oldCa.textContent = fmtEUR(last.ca_day);
 
-    // Chart
+    const oldCovers = $("#kpi_covers_day");
+    if (oldCovers) oldCovers.textContent = fmtINT(last.covers_day);
+
+    const oldTm = $("#kpi_tm_day");
+    if (oldTm) oldTm.textContent = fmtEUR(last.avg_ticket_day);
+
+    // ---- Chart (si page premium)
     renderHomeChart(payload?.history);
   }
 
   // =========================
-  // Fetch webhook
+  // Page router
   // =========================
-  async function loadDashboardFromWebhook() {
-    try {
-      const res = await fetch(`${DASHBOARD_URL}&_=${Date.now()}`, { cache: "no-store" });
-      if (!res.ok) throw new Error("HTTP " + res.status);
+  async function boot() {
+    const page = document.body?.dataset?.page || "";
 
-      const payload = await res.json();
-      window.__PP_DASHBOARD__ = payload;
+    const payload = await fetchDashboard();
 
-      // Home
-      hydrateHome(payload);
-
-      console.log("[PP OS] Webhook dashboard OK ✅", payload);
-    } catch (e) {
-      console.warn("[PP OS] Webhook dashboard KO ❌", e);
-
-      // Si erreur, on ne casse pas l’UI : on met juste des —
-      const ids = [
-        "kpiCa", "kpiCaMeta", "kpiCovers", "kpiCoversMeta",
-        "kpiTm", "kpiTmMeta", "kpiGoal", "kpiGoalMeta", "osUpdated"
-      ];
-      ids.forEach((id) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = "—";
-      });
-      const bar = document.getElementById("goalBar");
-      if (bar) bar.style.width = "0%";
+    if (!payload) {
+      // si KO : on affiche une info minimale si possible
+      const osUpdated = $("#osUpdated") || $("#lastUpdate");
+      if (osUpdated) osUpdated.textContent = "indisponible";
+      return;
     }
+
+    // Home
+    if (page === "home" || path === "index.html" || path === "pirates-paradise-intranet") {
+      hydrateHome(payload);
+    }
+
+    // (plus tard : hydrateCA(payload), hydrateOps(payload), etc.)
   }
 
-  // =========================
-  // Init + refresh
-  // =========================
-  loadDashboardFromWebhook();
-  setInterval(loadDashboardFromWebhook, 2 * 60 * 1000);
+  // Boot + refresh
+  boot();
+  setInterval(boot, 2 * 60 * 1000);
 })();
