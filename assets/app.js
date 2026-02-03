@@ -105,6 +105,9 @@
   // Home KPIs mapping (index.html)
   // =========================
   function hydrateHome(payload) {
+    console.log("PAYLOAD RECU =", payload);
+console.log("LAST =", payload.last);
+
     const last = payload?.last || {};
 
     // Badges footer (si présents)
