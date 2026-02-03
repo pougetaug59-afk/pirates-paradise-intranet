@@ -129,74 +129,85 @@
   // HOME : Hydrate
   // =========================
   function hydrateHome(payload) {
-    console.log("PAYLOAD RECU =", payload);
-    console.log("LAST =", payload.last);
+  console.log("PAYLOAD RECU =", payload);
+  console.log("LAST =", payload?.last);
 
-    const last = payload?.last || {};
+  const last = payload?.last || {};
 
-    // Footer / meta
-    const osUpdated = $("#osUpdated");
-    if (osUpdated) osUpdated.textContent = fmtISODateTime(payload?.updatedAt);
+  // Badges footer (si présents)
+  const osUpdated = $("#osUpdated");
+  if (osUpdated) osUpdated.textContent = fmtISODateTime(payload?.updatedAt);
 
-    const osVersion = $("#osVersion");
-    if (osVersion) osVersion.textContent = "live";
+  const osVersion = $("#osVersion");
+  if (osVersion) osVersion.textContent = "live";
 
-    // KPIs home
-    const kpiCa = $("#kpiCa");
-    if (kpiCa) kpiCa.textContent = fmtEUR(last.ca_day);
+  // ===== KPI : CA jour =====
+  const kpiCa = $("#kpiCa");
+  if (kpiCa) kpiCa.textContent = (last.ca_day !== null && last.ca_day !== undefined) ? fmtEUR(last.ca_day) : "—";
 
-    const kpiCaMeta = $("#kpiCaMeta");
-    if (kpiCaMeta) kpiCaMeta.textContent = `vs N-1 : ${fmtPCT(last.ca_day_vs_n1_pct)}`;
-
-    const kpiCovers = $("#kpiCovers");
-    if (kpiCovers) kpiCovers.textContent = fmtINT(last.covers_day);
-
-    const kpiCoversMeta = $("#kpiCoversMeta");
-    if (kpiCoversMeta) {
-      // si covers_day_vs_n1_pct existe on l'affiche, sinon —
-      kpiCoversMeta.textContent = (last.covers_day_vs_n1_pct != null)
-        ? `vs N-1 : ${fmtPCT(last.covers_day_vs_n1_pct)}`
-        : "vs N-1 : —";
-    }
-
-    const kpiTm = $("#kpiTm");
-    if (kpiTm) kpiTm.textContent = fmtEUR(last.avg_ticket_day);
-
-    const kpiTmMeta = $("#kpiTmMeta");
-    if (kpiTmMeta) {
-      kpiTmMeta.textContent = (last.ticket_goal != null)
-        ? `objectif : ${fmtEUR(last.ticket_goal)}`
-        : "objectif : —";
-    }
-
-    // Objectif CA + barre
-    const kpiGoal = $("#kpiGoal");
-    if (kpiGoal) {
-      kpiGoal.textContent = (last.goal_ca != null) ? fmtEUR(last.goal_ca) : "—";
-    }
-
-    const goalBar = $("#goalBar");
-    const kpiGoalMeta = $("#kpiGoalMeta");
-
-    if (last.goal_ca != null && last.ca_day != null && Number(last.goal_ca) > 0) {
-      const pct = Math.min(100, (Number(last.ca_day) / Number(last.goal_ca)) * 100);
-      if (goalBar) goalBar.style.width = pct.toFixed(0) + "%";
-      if (kpiGoalMeta) {
-        const reste = Number(last.goal_ca) - Number(last.ca_day);
-        kpiGoalMeta.textContent = `${pct.toFixed(0)}% atteint • reste ${fmtEUR(reste)}`;
-      }
-    } else {
-      if (goalBar) goalBar.style.width = "0%";
-      if (kpiGoalMeta) kpiGoalMeta.textContent = "—";
-    }
-
-    // badgeToday = date du last
-    const badgeToday = $("#badgeToday");
-    if (badgeToday && last.date) badgeToday.textContent = `📅 ${last.date}`;
-
-    // Chart 7 jours
-    renderHomeChart(payload?.history);
+  const kpiCaMeta = $("#kpiCaMeta");
+  if (kpiCaMeta) {
+    const v = last.ca_day_vs_n1_pct;
+    kpiCaMeta.textContent = (v !== null && v !== undefined) ? `vs N-1 : ${fmtPCT(v)}` : "vs N-1 : —";
   }
+
+  // ===== KPI : Couverts =====
+  const kpiCovers = $("#kpiCovers");
+  if (kpiCovers) kpiCovers.textContent = (last.covers_day !== null && last.covers_day !== undefined) ? fmtINT(last.covers_day) : "—";
+
+  const kpiCoversMeta = $("#kpiCoversMeta");
+  if (kpiCoversMeta) {
+    // Priorité : % si dispo, sinon valeur N-1 si dispo
+    if (last.covers_day_vs_n1_pct !== null && last.covers_day_vs_n1_pct !== undefined) {
+      kpiCoversMeta.textContent = `vs N-1 : ${fmtPCT(last.covers_day_vs_n1_pct)}`;
+    } else if (last.covers_day_n1 !== null && last.covers_day_n1 !== undefined) {
+      kpiCoversMeta.textContent = `vs N-1 : ${fmtINT(last.covers_day_n1)}`;
+    } else {
+      kpiCoversMeta.textContent = "vs N-1 : —";
+    }
+  }
+
+  // ===== KPI : Ticket moyen =====
+  const kpiTm = $("#kpiTm");
+  if (kpiTm) kpiTm.textContent = (last.avg_ticket_day !== null && last.avg_ticket_day !== undefined) ? fmtEUR(last.avg_ticket_day) : "—";
+
+  const kpiTmMeta = $("#kpiTmMeta");
+  if (kpiTmMeta) {
+    const tg = last.ticket_goal;
+    kpiTmMeta.textContent = (tg !== null && tg !== undefined) ? `objectif : ${fmtEUR(tg)}` : "objectif : —";
+  }
+
+  // ===== Objectif du jour (barre) =====
+  const kpiGoal = $("#kpiGoal");
+  const goalBar = $("#goalBar");
+  const kpiGoalMeta = $("#kpiGoalMeta");
+
+  const goalCA = (last.goal_ca !== null && last.goal_ca !== undefined) ? Number(last.goal_ca) : null;
+  const caDay = (last.ca_day !== null && last.ca_day !== undefined) ? Number(last.ca_day) : null;
+
+  if (goalCA && caDay !== null && !Number.isNaN(goalCA) && !Number.isNaN(caDay) && goalCA > 0) {
+    const pct = Math.max(0, Math.min(100, (caDay / goalCA) * 100));
+    if (kpiGoal) kpiGoal.textContent = fmtEUR(goalCA);
+    if (goalBar) goalBar.style.width = `${pct.toFixed(0)}%`;
+
+    if (kpiGoalMeta) {
+      const left = Math.max(0, goalCA - caDay);
+      kpiGoalMeta.textContent = `${pct.toFixed(0)}% atteint • reste ${fmtEUR(left)}`;
+    }
+  } else {
+    if (kpiGoal) kpiGoal.textContent = "—";
+    if (goalBar) goalBar.style.width = "0%";
+    if (kpiGoalMeta) kpiGoalMeta.textContent = "—";
+  }
+
+  // ===== Badge date (si présent sur la page) =====
+  const badgeToday = $("#badgeToday");
+  if (badgeToday && last.date) badgeToday.textContent = `📅 ${last.date}`;
+
+  // ===== Chart : 7 derniers jours =====
+  renderHomeChart(payload?.history);
+}
+
 
   // =========================
   // CA PAGE : Hydrate
