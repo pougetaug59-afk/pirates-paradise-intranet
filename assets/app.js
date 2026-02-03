@@ -1,232 +1,192 @@
 (() => {
-  // =========
+  // =========================
   // CONFIG
-  // =========
-  const DASHBOARD_API =
-    "https://pp.autopdm.fr/webhook/pp/dashboard?token=pp_lille_59";
-
-  const REFRESH_MS = 2 * 60 * 1000;
+  // =========================
+  const DASHBOARD_URL = "https://pp.autopdm.fr/webhook/pp/dashboard?token=pp_lille_59";
 
   // Petit helper
   const $ = (sel) => document.querySelector(sel);
 
-  // =========
-  // UI: date sous-titre (si présent)
-  // =========
+  // =========================
+  // UI: subtitle date
+  // =========================
   const subtitle = $("#subtitle");
   if (subtitle) {
-    const fr = new Intl.DateTimeFormat("fr-FR", { dateStyle: "full" }).format(
-      new Date()
-    );
+    const fr = new Intl.DateTimeFormat("fr-FR", { dateStyle: "full" }).format(new Date());
     subtitle.textContent = fr;
   }
 
-  // =========
-  // UI: nav active (si tes liens ont .nav-link)
-  // =========
+  // =========================
+  // UI: nav active
+  // =========================
   const path = (location.pathname.split("/").pop() || "index.html").toLowerCase();
   document.querySelectorAll(".nav-link").forEach((a) => {
     const href = (a.getAttribute("href") || "").toLowerCase();
     if (href === path) {
       a.classList.add("is-active");
-      a.setAttribute("aria-current", "page");
     }
   });
 
-  // =========
-  // Format helpers
-  // =========
-  const eur = (n) =>
-    n == null || Number.isNaN(Number(n))
-      ? "—"
-      : new Intl.NumberFormat("fr-FR", {
-          style: "currency",
-          currency: "EUR",
-        }).format(Number(n));
-
-  const num = (n) =>
-    n == null || Number.isNaN(Number(n))
-      ? "—"
-      : new Intl.NumberFormat("fr-FR").format(Number(n));
-
-  const pct = (n) => {
+  // =========================
+  // Formatters
+  // =========================
+  const fmtEUR = (n) => {
     if (n == null || Number.isNaN(Number(n))) return "—";
-    const x = Number(n);
-    const sign = x > 0 ? "+" : "";
-    return `${sign}${x.toFixed(1)}%`;
+    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(Number(n));
   };
 
-  // =========
-  // Normalisation : accepte plusieurs formats (webhook n8n / ancien json / mock)
-  // =========
-  function normalize(raw) {
-    // Format webhook n8n attendu :
-    // { last: {...}, history: [...], updatedAt: "..." }
-    if (raw && raw.last) {
-      const last = raw.last || {};
-      const history = Array.isArray(raw.history) ? raw.history : [];
+  const fmtINT = (n) => {
+    if (n == null || Number.isNaN(Number(n))) return "—";
+    return new Intl.NumberFormat("fr-FR").format(Number(n));
+  };
 
-      return {
-        updated_at: raw.updatedAt || raw.updated_at || last.date || null,
+  const fmtPCT = (n) => {
+    if (n == null || Number.isNaN(Number(n))) return "—";
+    const v = Number(n);
+    const sign = v > 0 ? "+" : "";
+    return `${sign}${v.toFixed(1)}%`;
+  };
 
-        // KPIs jour
-        ca_day: last.ca_day ?? null,
-        covers_day: last.covers_day ?? null,
-        avg_ticket_day: last.avg_ticket_day ?? null,
+  const fmtISODateTime = (iso) => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return String(iso);
+    return d.toLocaleString("fr-FR");
+  };
 
-        // Comparaisons
-        ca_day_vs_n1_pct: last.ca_day_vs_n1_pct ?? null,
-        covers_day_vs_n1_pct: last.covers_day_vs_n1_pct ?? null,
+  // =========================
+  // Chart (home)
+  // =========================
+  let ca7ChartInstance = null;
 
-        // Objectifs (souvent pas dans ton webhook actuellement)
-        goal_ca_day: last.goal_ca_day ?? raw.goal_ca_day ?? null,
-        ticket_goal_day: last.ticket_goal_day ?? raw.ticket_goal_day ?? null,
+  function renderHomeChart(history) {
+    const canvas = $("#ca7Chart");
+    if (!canvas) return; // pas la home
 
-        // Historique pour graphe
-        history,
-      };
+    if (typeof Chart === "undefined") {
+      console.warn("[PP OS] Chart.js non chargé");
+      return;
     }
 
-    // Ancien format possible (ex: data/dashboard.json)
-    return {
-      updated_at: raw?.updated_at ?? null,
-      ca_day: raw?.ca_day ?? null,
-      covers_day: raw?.covers_day ?? null,
-      avg_ticket_day: raw?.avg_ticket ?? raw?.avg_ticket_day ?? null,
-      ca_day_vs_n1_pct: raw?.ca_day_vs_n1_pct ?? null,
-      covers_day_vs_n1_pct: raw?.covers_day_vs_n1_pct ?? null,
-      goal_ca_day: raw?.goal_ca_day ?? null,
-      ticket_goal_day: raw?.ticket_goal_day ?? null,
-      history: Array.isArray(raw?.history) ? raw.history : [],
-    };
+    // Prendre les 7 derniers points dispo
+    const last7 = (Array.isArray(history) ? history : []).slice(-7);
+    const labels = last7.map((x) => (x.date ? x.date.slice(5) : "")); // MM-DD
+    const values = last7.map((x) => Number(x.ca_day || 0));
+
+    // Détruire l’ancien chart si refresh
+    if (ca7ChartInstance) {
+      ca7ChartInstance.destroy();
+      ca7ChartInstance = null;
+    }
+
+    ca7ChartInstance = new Chart(canvas, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            data: values,
+            borderWidth: 2,
+            tension: 0.35,
+            fill: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { display: false }, y: { display: false } },
+      },
+    });
   }
 
-  // =========
-  // Render : supporte les IDs "anciens" + "nouveaux" (tes 2 visuels)
-  // =========
-  function render(data) {
-    // Dernière MAJ (si un élément existe)
-    const lastUpdate = $("#lastUpdate") || $("#osUpdated");
-    if (lastUpdate) lastUpdate.textContent = data.updated_at || "—";
+  // =========================
+  // Home KPIs mapping (index.html)
+  // =========================
+  function hydrateHome(payload) {
+    const last = payload?.last || {};
 
-    // ------- INDEX (nouveau visuel)
+    // Badges footer (si présents)
+    const osUpdated = $("#osUpdated");
+    if (osUpdated) osUpdated.textContent = fmtISODateTime(payload?.updatedAt);
+
+    const osVersion = $("#osVersion");
+    if (osVersion) osVersion.textContent = "live";
+
+    // KPI cards (tes IDs sur la home)
     const kpiCa = $("#kpiCa");
-    if (kpiCa) kpiCa.textContent = eur(data.ca_day);
+    if (kpiCa) kpiCa.textContent = fmtEUR(last.ca_day);
 
     const kpiCaMeta = $("#kpiCaMeta");
-    if (kpiCaMeta)
-      kpiCaMeta.textContent = `vs N-1 : ${pct(data.ca_day_vs_n1_pct)}`;
+    if (kpiCaMeta) kpiCaMeta.textContent = `vs N-1 : ${fmtPCT(last.ca_day_vs_n1_pct)}`;
 
     const kpiCovers = $("#kpiCovers");
-    if (kpiCovers) kpiCovers.textContent = num(data.covers_day);
+    if (kpiCovers) kpiCovers.textContent = fmtINT(last.covers_day);
 
     const kpiCoversMeta = $("#kpiCoversMeta");
-    if (kpiCoversMeta)
-      kpiCoversMeta.textContent = `vs N-1 : ${pct(data.covers_day_vs_n1_pct)}`;
+    // Ton webhook ne donne pas covers_day_n1 pour l’instant → on met —
+    if (kpiCoversMeta) kpiCoversMeta.textContent = `vs N-1 : —`;
 
     const kpiTm = $("#kpiTm");
-    if (kpiTm) kpiTm.textContent = eur(data.avg_ticket_day);
+    if (kpiTm) kpiTm.textContent = fmtEUR(last.avg_ticket_day);
 
     const kpiTmMeta = $("#kpiTmMeta");
-    if (kpiTmMeta) {
-      kpiTmMeta.textContent =
-        data.ticket_goal_day != null ? `objectif : ${eur(data.ticket_goal_day)}` : "objectif : —";
-    }
+    if (kpiTmMeta) kpiTmMeta.textContent = `objectif : —`;
 
+    // Objectif (pas encore dans ton payload)
     const kpiGoal = $("#kpiGoal");
-    if (kpiGoal) kpiGoal.textContent = data.goal_ca_day != null ? eur(data.goal_ca_day) : "—";
+    if (kpiGoal) kpiGoal.textContent = "—";
 
     const goalBar = $("#goalBar");
+    if (goalBar) goalBar.style.width = "0%";
+
     const kpiGoalMeta = $("#kpiGoalMeta");
-    if (goalBar && kpiGoalMeta) {
-      if (data.goal_ca_day != null && data.ca_day != null && Number(data.goal_ca_day) > 0) {
-        const p = Math.min(100, (Number(data.ca_day) / Number(data.goal_ca_day)) * 100);
-        goalBar.style.width = `${p.toFixed(0)}%`;
-        kpiGoalMeta.textContent = `${p.toFixed(0)}% atteint • reste ${eur(Number(data.goal_ca_day) - Number(data.ca_day))}`;
-      } else {
-        goalBar.style.width = "0%";
-        kpiGoalMeta.textContent = "—";
-      }
-    }
+    if (kpiGoalMeta) kpiGoalMeta.textContent = "—";
 
-    // ------- CA PAGE (ton visuel KPI : ids possibles)
-    const caDayOld = $("#kpi_ca_day");
-    if (caDayOld) caDayOld.textContent = eur(data.ca_day);
+    // Optionnel : afficher clairement la date de “last”
+    const badgeToday = $("#badgeToday");
+    if (badgeToday && last.date) badgeToday.textContent = `📅 ${last.date}`;
 
-    const coversOld = $("#kpi_covers_day");
-    if (coversOld) coversOld.textContent = num(data.covers_day);
-
-    const tmOld = $("#kpi_tm_day");
-    if (tmOld) tmOld.textContent = eur(data.avg_ticket_day);
-
-    // =========
-    // Chart (si canvas existe + Chart.js chargé)
-    // =========
-    const canvas = $("#ca7Chart");
-    if (canvas && window.Chart) {
-      // Prend les 7 derniers points de history si dispo, sinon rien
-      const last7 = (data.history || []).slice(-7);
-      const values = last7.map((x) => Number(x.ca_day ?? 0));
-      const labels = last7.map((x) => (x.date ? String(x.date).slice(5) : ""));
-
-      // détruire l’ancien chart si présent
-      if (window.__ppChart) {
-        try { window.__ppChart.destroy(); } catch (e) {}
-        window.__ppChart = null;
-      }
-
-      // Si pas de data -> ne pas casser
-      if (values.length) {
-        window.__ppChart = new Chart(canvas, {
-          type: "line",
-          data: {
-            labels,
-            datasets: [
-              {
-                data: values,
-                borderWidth: 2,
-                tension: 0.35,
-                fill: false,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { x: { display: false }, y: { display: false } },
-          },
-        });
-      }
-    }
+    // Chart
+    renderHomeChart(payload?.history);
   }
 
-  // =========
+  // =========================
   // Fetch webhook
-  // =========
-  async function loadLive() {
+  // =========================
+  async function loadDashboardFromWebhook() {
     try {
-      const url = `${DASHBOARD_API}&_=${Date.now()}`; // cache-bust
-      const res = await fetch(url, { cache: "no-store" });
+      const res = await fetch(`${DASHBOARD_URL}&_=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) throw new Error("HTTP " + res.status);
 
-      const raw = await res.json();
-      const data = normalize(raw);
+      const payload = await res.json();
+      window.__PP_DASHBOARD__ = payload;
 
-      // Debug utile
-      console.log("[PP OS] webhook OK ✅", { raw, data });
+      // Home
+      hydrateHome(payload);
 
-      render(data);
+      console.log("[PP OS] Webhook dashboard OK ✅", payload);
     } catch (e) {
-      console.warn("[PP OS] webhook FAIL ❌", e);
+      console.warn("[PP OS] Webhook dashboard KO ❌", e);
 
-      // Affiche au moins “indisponible” si on a un endroit où le mettre
-      const lastUpdate = $("#lastUpdate") || $("#osUpdated");
-      if (lastUpdate) lastUpdate.textContent = "indisponible";
+      // Si erreur, on ne casse pas l’UI : on met juste des —
+      const ids = [
+        "kpiCa", "kpiCaMeta", "kpiCovers", "kpiCoversMeta",
+        "kpiTm", "kpiTmMeta", "kpiGoal", "kpiGoalMeta", "osUpdated"
+      ];
+      ids.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = "—";
+      });
+      const bar = document.getElementById("goalBar");
+      if (bar) bar.style.width = "0%";
     }
   }
 
-  // Start + refresh
-  loadLive();
-  setInterval(loadLive, REFRESH_MS);
+  // =========================
+  // Init + refresh
+  // =========================
+  loadDashboardFromWebhook();
+  setInterval(loadDashboardFromWebhook, 2 * 60 * 1000);
 })();
