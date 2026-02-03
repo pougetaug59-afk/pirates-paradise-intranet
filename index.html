@@ -1,119 +1,721 @@
 <!doctype html>
 <html lang="fr">
 <head>
+  <!--
+  INDEX — Pirates Paradise OS (V1 Direction)
+  Objectifs :
+  - Page plus aérée, un peu moins sombre, premium dark lisible
+  - Ajout visuel : mini chart CA 7 jours (Chart.js)
+  - Ajout “Priorité du jour” (parchemin light)
+  - Footer : Support intranet (Augustin) + 2 mailto
+
+  Dépendances :
+  - assets/app.css (ton design global)
+  - assets/app.js (nav active + menu + search + data hook)
+  - Chart.js via CDN (uniquement sur cette page)
+  -->
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pirates Paradise OS — Dashboard</title>
+  <title>Pirates Paradise OS — Accueil</title>
 
-  <!-- Styles (global) -->
-  <link rel="stylesheet" href="./assets/app.css">
+  <!-- CSS commun -->
+  <link rel="stylesheet" href="./assets/app.css?v=os2">
+  <!-- JS commun -->
+  <script src="./assets/app.js?v=os2" defer></script>
 
-  <!-- Chart.js (pour le graphe CA) -->
+  <!-- Chart.js (uniquement pour le mini graphique) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-  <!-- Script (global) -->
-  <script src="./assets/app.js" defer></script>
+  <!-- HOME ONLY : on éclaircit un cran + on aère (sans casser ton thème global) -->
+  <style>
+    /* Légèrement moins sombre / plus respirant */
+    body{
+      background:
+        radial-gradient(1200px 650px at 15% -10%, rgba(207,163,74,.10), transparent 55%),
+        radial-gradient(900px 520px at 90% 0%, rgba(5,38,68,.45), transparent 60%),
+        #071326;
+    }
+
+    /* Aérer le contenu */
+    .os-gap-lg{ margin-top:18px; }
+    .os-section-pad{ padding:18px; }
+
+    /* Titres plus hiérarchisés */
+    .os-h1{
+      font-size:24px;
+      line-height:1.15;
+      margin:0;
+      font-weight:950;
+      letter-spacing:.2px;
+    }
+    .os-h2{
+      font-size:18px;
+      margin:0;
+      font-weight:950;
+      letter-spacing:.2px;
+    }
+    .os-sub{
+      margin-top:8px;
+      color:rgba(180,195,222,.95);
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    /* Badge Demo/Mock discret */
+    .os-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(207,163,74,.18);
+      background:rgba(10,19,36,.35);
+      color:rgba(234,240,255,.90);
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    /* Priorité du jour : parchemin light (1 seule section) */
+    .os-parchment{
+      background:
+        radial-gradient(700px 200px at 30% 20%, rgba(255,255,255,.10), transparent 60%),
+        linear-gradient(135deg, rgba(245,240,230,.22), rgba(207,163,74,.10));
+      border:1px solid rgba(207,163,74,.22);
+      border-radius:16px;
+      padding:18px;
+    }
+    .os-parchment .os-parchment-title{
+      font-weight:950;
+      letter-spacing:.2px;
+      font-size:14px;
+      color:rgba(255,255,255,.92);
+    }
+    .os-parchment .os-parchment-text{
+      margin-top:8px;
+      font-size:14px;
+      line-height:1.35;
+      color:rgba(234,240,255,.92);
+    }
+
+    /* Grid helpers (12 col) */
+    .os-grid{ display:grid; grid-template-columns:repeat(12,1fr); gap:14px; }
+    .os-col-12{ grid-column:span 12; }
+    .os-col-6{ grid-column:span 12; }
+    .os-col-4{ grid-column:span 12; }
+    .os-col-3{ grid-column:span 12; }
+
+    @media(min-width:980px){
+      .os-col-6{ grid-column:span 6; }
+      .os-col-4{ grid-column:span 4; }
+      .os-col-3{ grid-column:span 3; }
+    }
+
+    /* Cards “soft” (un peu plus claires) */
+    .os-card-soft{
+      border:1px solid rgba(207,163,74,.14);
+      background:rgba(10,19,36,.30);
+      border-radius:16px;
+      padding:16px;
+      box-shadow:none;
+    }
+
+    /* KPI mini-cards */
+    .os-kpi{
+      border:1px solid rgba(207,163,74,.14);
+      background:rgba(7,19,38,.28);
+      border-radius:16px;
+      padding:14px;
+      box-shadow:none;
+    }
+    .os-kpi-label{ color:rgba(180,195,222,.98); font-size:12px; }
+    .os-kpi-value{ font-size:28px; font-weight:950; margin-top:6px; }
+    .os-kpi-meta{ color:rgba(180,195,222,.92); font-size:12px; margin-top:6px; }
+
+    /* Progress bar objectif */
+    .os-progress{
+      height:10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(207,163,74,.16);
+      overflow:hidden;
+      margin-top:10px;
+    }
+    .os-progress > div{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg, rgba(207,163,74,1), rgba(227,190,108,.90));
+      border-radius:999px;
+      transition:width .4s ease;
+    }
+
+    /* Mini chart wrapper — FIX taille Chart.js */
+    .os-chart-wrap{
+      border:1px solid rgba(207,163,74,.14);
+      background:rgba(7,19,38,.22);
+      border-radius:16px;
+      padding:14px;
+      box-shadow:none;
+      height:190px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .os-chart-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .os-chart-title{
+      font-weight:950;
+      letter-spacing:.2px;
+      font-size:13px;
+      color:rgba(234,240,255,.95);
+    }
+    .os-chart-sub{
+      font-size:12px;
+      color:rgba(180,195,222,.92);
+    }
+    .os-canvas{
+      width:100% !important;
+      height:140px !important;
+      display:block;
+    }
+
+    /* Quick actions tiles */
+    .os-tile{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      text-decoration:none;
+      color:inherit;
+      border-radius:16px;
+      border:1px solid rgba(207,163,74,.14);
+      background:rgba(10,19,36,.28);
+      padding:14px;
+      transition:transform .08s ease, border-color .12s ease, background .12s ease;
+      min-height:92px;
+    }
+    .os-tile:hover{ border-color:rgba(207,163,74,.28); background:rgba(13,26,49,.38); }
+    .os-tile:active{ transform:translateY(1px); }
+    .os-tile:focus{ outline:3px solid rgba(207,163,74,.35); outline-offset:2px; }
+    .os-tile-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .os-tile-ttl{ font-weight:950; letter-spacing:.2px; }
+    .os-tile-sub{ font-size:13px; color:rgba(180,195,222,.95); line-height:1.35; }
+
+    /* Feeds */
+    .os-feed{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+    .os-item{
+      border-radius:14px;
+      border:1px solid rgba(207,163,74,.12);
+      background:rgba(10,19,36,.22);
+      padding:12px;
+    }
+    .os-item-top{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .os-item-ttl{ font-weight:900; }
+    .os-item-meta{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .os-tag{
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(207,163,74,.16);
+      background:rgba(5,11,20,.20);
+      color:rgba(234,240,255,.92);
+      white-space:nowrap;
+    }
+    .os-date{ font-size:11px; color:rgba(180,195,222,.92); }
+    .os-item-desc{
+      font-size:13px;
+      color:rgba(180,195,222,.95);
+      margin-top:8px;
+      line-height:1.35;
+    }
+
+    /* Docs & links */
+    .os-list{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+    .os-doc{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid rgba(207,163,74,.12);
+      background:rgba(10,19,36,.22);
+    }
+    .os-doc-ttl{ font-weight:900; }
+    .os-doc-meta{ font-size:12px; color:rgba(180,195,222,.92); margin-top:6px; }
+
+    .os-links{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+    .os-link{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid rgba(207,163,74,.12);
+      background:rgba(10,19,36,.22);
+      text-decoration:none;
+      color:inherit;
+    }
+    .os-link:hover{ border-color:rgba(207,163,74,.26); background:rgba(13,26,49,.34); }
+    .os-link:focus{ outline:3px solid rgba(207,163,74,.35); outline-offset:2px; }
+    .os-link small{ color:rgba(180,195,222,.92); }
+
+    /* Footer discret + actions */
+    .os-footer{
+      margin-top:18px;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid rgba(207,163,74,.12);
+      background:rgba(10,19,36,.18);
+      color:rgba(180,195,222,.92);
+      font-size:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .os-footer-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+
+    /* Mobile */
+    @media(max-width:900px){
+      .search{ display:none; }
+    }
+  </style>
 </head>
 
-<body>
-  <!-- Topbar -->
+<body data-page="home">
+
+  <!-- HEADER STICKY -->
   <header class="topbar">
-    <div class="brand">
-      <div class="logo">PP</div>
-      <div class="brandText">
-        <div class="brandTitle">Pirates Paradise OS</div>
-        <div class="brandSub">Intranet direction & managers</div>
+    <div class="container topbar-inner" style="display:flex; align-items:center; gap:14px;">
+      <!-- Gauche : marque -->
+      <div class="brand" style="flex:1; min-width:220px;">
+        <div class="logo" aria-hidden="true">PP</div>
+        <div>
+          <div class="brand-title">Pirates Paradise OS</div>
+          <div class="brand-sub" id="subtitle">Intranet direction & managers</div>
+        </div>
+      </div>
+
+      <!-- Centre : logo image -->
+      <div style="flex:0 0 auto; display:flex; justify-content:center; align-items:center;">
+        <img
+          src="https://lille.pirates-paradise.fr/wp-content/uploads/2025/08/col.png"
+          alt="Logo Pirates Paradise"
+          style="height:42px; width:auto; display:block; filter:drop-shadow(0 10px 18px rgba(0,0,0,.35));"
+        />
+      </div>
+
+      <!-- Droite : profil + aide (mock) -->
+      <div style="flex:1; min-width:220px; display:flex; justify-content:flex-end; align-items:center; gap:10px;">
+        <a class="btn" href="./docs.html" aria-label="Aide et documentation">❓ Aide</a>
+
+        <div class="os-pill" role="button" tabindex="0" aria-label="Profil utilisateur (mock)">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M12 12a4 4 0 1 0-4-4a4 4 0 0 0 4 4m0 2c-4.42 0-8 2-8 4.5V21h16v-2.5c0-2.5-3.58-4.5-8-4.5"/>
+          </svg>
+          <span id="mockUser">Manager</span>
+          <span class="os-tag" aria-label="Mode démo">Demo</span>
+        </div>
       </div>
     </div>
 
-    <div class="search">
-      <span class="icon">🔎</span>
-      <input id="searchInput" type="search" placeholder="Rechercher une page, une procédure, un outil..." />
-      <span class="kbd">Entrée</span>
+    <!-- Navigation principale (stable) -->
+    <div class="container" style="padding-top:10px; padding-bottom:10px;">
+      <nav aria-label="Navigation principale" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; align-items:center;">
+        <a class="nav-link is-active" href="./index.html" aria-current="page">Accueil</a>
+        <a class="nav-link" href="./ca.html">Piloter le CA</a>
+        <a class="nav-link" href="./operations.html">Gérer les ops</a>
+        <a class="nav-link" href="./docs.html">Trouver un doc</a>
+        <a class="nav-link" href="./rh.html">Accéder RH</a>
+
+        <button
+          id="moreBtn"
+          type="button"
+          class="btn primary"
+          aria-expanded="false"
+          aria-controls="moreMenu"
+          style="border-radius:999px; padding:8px 12px;"
+        >＋</button>
+      </nav>
+
+      <!-- Menu secondaire -->
+      <div id="moreMenu" class="card" style="display:none; margin-top:12px; box-shadow:none;" role="region" aria-label="Menu secondaire">
+        <div class="muted">Raccourcis</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+          <a class="os-pill" href="./b2b.html">🤝 Suivre le B2B</a>
+          <a class="os-pill" href="./tools.html">🧰 Outils</a>
+          <a class="os-pill" href="./settings.html">⚙️ Réglages</a>
+        </div>
+      </div>
     </div>
 
-    <div class="actions">
-      <select id="roleSelect" class="select">
-        <option>Manager</option>
-        <option>Direction</option>
-        <option>Compta</option>
-        <option>Cuisine</option>
-      </select>
+    <!-- Search UI + suggestions -->
+    <div class="container" style="padding-bottom:14px;">
+      <div class="search">
+        <div class="searchbox" style="width:100%;" role="search">
+          🔎
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="Chercher une tâche, une procédure, un outil… (ex: “CA du jour”, “incident”, “checklist”)"
+            aria-label="Recherche"
+            autocomplete="off"
+          />
+          <span class="kbd">Entrée</span>
+        </div>
+      </div>
 
-      <a class="pill active" href="./index.html">Dashboard</a>
-      <a class="pill" href="./ops.html">Ops</a>
+      <!-- Suggestions (discrètes) -->
+      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:10px;">
+        <span class="muted">Raccourcis :</span>
+        <a class="os-pill" href="./ca.html">Voir CA du jour</a>
+        <a class="os-pill" href="./operations.html">Déclarer un incident</a>
+        <a class="os-pill" href="./docs.html">Trouver une procédure</a>
+      </div>
     </div>
   </header>
 
-  <!-- Navigation -->
-  <nav class="subnav">
-    <a class="subnavLink active" href="./index.html">Dashboard</a>
-    <a class="subnavLink" href="./ca.html">CA</a>
-    <a class="subnavLink" href="./frequentation.html">Fréquentation</a>
-    <a class="subnavLink" href="./alerts.html">Alertes</a>
-    <a class="subnavLink" href="./ops.html">Ops</a>
-    <a class="subnavLink" href="./docs.html">Docs</a>
-    <a class="subnavLink" href="./tools.html">Outils</a>
-    <span class="subnavSpacer"></span>
-    <a class="subnavLink" href="./crm.html">CRM</a>
-    <a class="subnavLink" href="./b2b.html">B2B</a>
-    <a class="subnavLink" href="./rh.html">RH</a>
-    <a class="subnavLink" href="./finance.html">Compta</a>
-    <a class="subnavLink" href="./com.html">Com</a>
-    <a class="subnavLink" href="./gifts.html">Bons cadeaux</a>
-    <a class="subnavLink" href="./settings.html">Réglages</a>
-  </nav>
-
-  <!-- Main -->
+  <!-- MAIN -->
   <main class="container">
-    <div class="pageHeader">
-      <h1>Dashboard direction & managers</h1>
-      <div class="muted">Dernière mise à jour : <span id="lastUpdate">—</span></div>
-    </div>
 
-    <section class="card">
-      <h2>Bienvenue à bord</h2>
-      <p class="muted">Homepage MVP : chiffres clés, alertes, opérations du jour, accès rapide.</p>
-    </section>
-
-    <!-- KPIs -->
-    <section class="grid3">
-      <div class="kpiCard">
-        <div class="kpiLabel">CA Jour</div>
-        <div class="kpiValue" id="kpi_ca_day">—</div>
-      </div>
-
-      <div class="kpiCard">
-        <div class="kpiLabel">Couverts Jour</div>
-        <div class="kpiValue" id="kpi_covers_day">—</div>
-      </div>
-
-      <div class="kpiCard">
-        <div class="kpiLabel">Ticket moyen</div>
-        <div class="kpiValue" id="kpi_tm_day">—</div>
+    <!-- HERO -->
+    <section class="os-card-soft os-section-pad" aria-label="Résumé">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+        <div>
+          <h1 class="os-h1">Utile en 10 secondes.</h1>
+          <div class="os-sub">Priorité, chiffres, actions rapides. Le reste est à 1 clic.</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <span class="os-pill" id="badgeToday" aria-label="Date du jour">📅 —</span>
+          <span class="os-pill" id="badgeStatus" aria-label="Service">⚓ Service : —</span>
+        </div>
       </div>
     </section>
 
-    <!-- Bloc chart + raccourcis -->
-    <section class="grid2">
-      <div class="card">
-        <h2>Évolution CA</h2>
-        <p class="muted">Le graphe sera branché ensuite sur n8n (history). Pour l’instant, il peut rester vide.</p>
-        <canvas id="caChart" height="110"></canvas>
+    <!-- Priorité du jour -->
+    <section class="os-parchment os-gap-lg" aria-label="Priorité du jour">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+        <div class="os-parchment-title">Priorité du jour</div>
+        <span class="os-pill" id="prioService" aria-label="Service">Service : soir</span>
       </div>
-
-      <div class="card">
-        <h2>Ops du jour</h2>
-        <p class="muted">Checklists ouverture / service / fermeture</p>
-        <a class="btn" href="./ops.html">Ouvrir →</a>
+      <div class="os-parchment-text" id="prioText">
+        Réussir le service du soir (rush 19h–21h) + focus upsell desserts.
+      </div>
+      <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+        <a class="btn" href="./operations.html" aria-label="Aller aux ops">Ouvrir les Ops →</a>
+        <a class="btn" href="./ca.html" aria-label="Aller au pilotage CA">Piloter le CA →</a>
+        <span class="os-tag" aria-label="Mode démo">Demo</span>
       </div>
     </section>
 
-    <section class="card">
-      <h2>Alertes prioritaires</h2>
-      <p class="muted">À brancher ensuite sur n8n</p>
-      <a class="btnSecondary" href="./alerts.html">Ouvrir →</a>
+    <!-- AUJOURD’HUI -->
+    <section class="os-card-soft os-section-pad os-gap-lg" aria-label="Aujourd’hui">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+        <div>
+          <h2 class="os-h2">Aujourd’hui</h2>
+          <div class="os-sub">Vue rapide (direction). Les automatisations arrivent ensuite.</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <span class="os-tag">Live</span>
+          <a class="btn" href="./ca.html" aria-label="Voir le détail CA">Voir le détail →</a>
+        </div>
+      </div>
+
+      <div class="os-grid" style="margin-top:14px;">
+        <!-- ✅ KPIs LIVE (IDs compatibles app.js) -->
+        <div class="os-kpi os-col-3">
+          <div class="os-kpi-label">CA jour</div>
+          <div class="os-kpi-value" id="kpi_ca_day">—</div>
+          <div class="os-kpi-meta" id="kpiCaMeta">vs N-1 : —</div>
+        </div>
+
+        <div class="os-kpi os-col-3">
+          <div class="os-kpi-label">Couverts</div>
+          <div class="os-kpi-value" id="kpi_covers_day">—</div>
+          <div class="os-kpi-meta" id="kpiCoversMeta">vs N-1 : —</div>
+        </div>
+
+        <div class="os-kpi os-col-3">
+          <div class="os-kpi-label">Ticket moyen</div>
+          <div class="os-kpi-value" id="kpi_tm_day">—</div>
+          <div class="os-kpi-meta" id="kpiTmMeta">objectif : —</div>
+        </div>
+
+        <div class="os-kpi os-col-3">
+          <div class="os-kpi-label">Objectif du jour</div>
+          <div class="os-kpi-value" id="kpiGoal">—</div>
+          <div class="os-progress" aria-label="Progression objectif">
+            <div id="goalBar"></div>
+          </div>
+          <div class="os-kpi-meta" id="kpiGoalMeta">—</div>
+        </div>
+
+        <!-- Mini chart CA 7 jours (demo pour l’instant) -->
+        <div class="os-chart-wrap os-col-12" aria-label="Graphique CA 7 jours">
+          <div class="os-chart-head">
+            <div>
+              <div class="os-chart-title">CA — 7 derniers jours</div>
+              <div class="os-chart-sub">Courbe discrète (demo). S’adapte à l’écran.</div>
+            </div>
+            <span class="os-tag">Demo</span>
+          </div>
+          <canvas id="ca7Chart" class="os-canvas" aria-label="Graphique CA"></canvas>
+        </div>
+      </div>
     </section>
+
+    <!-- ACTIONS RAPIDES -->
+    <section class="os-card-soft os-section-pad os-gap-lg" aria-label="Actions rapides">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+        <div>
+          <h2 class="os-h2">Actions rapides</h2>
+          <div class="os-sub">Clique → exécute. Orienté “tâches” (direction).</div>
+        </div>
+        <span class="os-tag">Demo</span>
+      </div>
+
+      <div class="os-grid" style="margin-top:14px;" id="quickActions"></div>
+    </section>
+
+    <!-- VEILLE + ANNONCES -->
+    <section class="os-grid os-gap-lg" aria-label="Actualités et annonces">
+      <div class="os-card-soft os-section-pad os-col-6" aria-label="Veille restauration">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h2 class="os-h2">Veille — secteur restauration</h2>
+            <div class="os-sub">Titres courts + tags + résumé actionnable.</div>
+          </div>
+          <span class="os-tag">Demo</span>
+        </div>
+        <div class="os-feed" id="feedSector"></div>
+      </div>
+
+      <div class="os-card-soft os-section-pad os-col-6" aria-label="Annonces internes">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h2 class="os-h2">Annonces internes</h2>
+            <div class="os-sub">Ce qui compte maintenant (court, clair, daté).</div>
+          </div>
+          <a class="btn" href="./docs.html" aria-label="Aller aux ressources">Ressources →</a>
+        </div>
+        <div class="os-feed" id="feedInternal"></div>
+      </div>
+    </section>
+
+    <!-- DOCS + LIENS -->
+    <section class="os-grid os-gap-lg" aria-label="Documents et liens">
+      <div class="os-card-soft os-section-pad os-col-6" aria-label="Documents récents">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h2 class="os-h2">Documents récents</h2>
+            <div class="os-sub">Accès direct aux derniers docs utiles.</div>
+          </div>
+          <span class="os-tag">Demo</span>
+        </div>
+        <div class="os-list" id="recentDocs"></div>
+      </div>
+
+      <div class="os-card-soft os-section-pad os-col-6" aria-label="Liens utiles">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h2 class="os-h2">Liens utiles</h2>
+            <div class="os-sub">Outils du quotidien (1 clic).</div>
+          </div>
+          <span class="os-tag">Demo</span>
+        </div>
+        <div class="os-links" id="usefulLinks"></div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="os-footer" aria-label="Pied de page">
+      <div>
+        <div style="font-weight:900; letter-spacing:.2px;">Support intranet : Augustin (Admin OS)</div>
+        <div style="margin-top:4px;">
+          Version : <strong id="osVersion">v0.2</strong> • Dernière MAJ : <strong id="lastUpdate">—</strong>
+        </div>
+      </div>
+
+      <div class="os-footer-actions" aria-label="Actions support">
+        <a class="btn" href="mailto:augustin@pirates-paradise.fr?subject=Bug%20intranet%20Pirates%20Paradise%20OS">🐛 Signaler un bug</a>
+        <a class="btn primary" href="mailto:augustin@pirates-paradise.fr?subject=Demande%20d%E2%80%99acc%C3%A8s%20intranet">🔐 Demander un accès</a>
+      </div>
+    </footer>
+
   </main>
+
+  <!-- HOME JS (mock : n’écrase PAS les KPIs live) -->
+  <script>
+    (function () {
+      const MOCK_DATA = {
+        meta: { version: "v0.2", service_status: "soir" },
+        ca_last7: [14200, 15800, 17150, 16500, 18200, 19100, 18580],
+        quickActions: [
+          { title: "Voir le CA du jour", desc: "KPIs + tendances direction.", href: "./ca.html" },
+          { title: "Comparer vs N-1", desc: "Lecture rapide des écarts.", href: "./ca.html" },
+          { title: "Déclarer un incident", desc: "Matériel / salle / sécurité.", href: "./operations.html" },
+          { title: "Ouvrir checklist ouverture", desc: "3 min pour être prêt.", href: "./operations.html#checklists" },
+          { title: "Trouver une procédure", desc: "Recherche dans la base.", href: "./docs.html" },
+          { title: "Accéder aux infos RH", desc: "Contacts + urgences.", href: "./rh.html" },
+          { title: "Suivre une demande B2B", desc: "Pipeline simple.", href: "./b2b.html" },
+          { title: "Outils rapides", desc: "Liens du quotidien.", href: "./tools.html" }
+        ],
+        sectorNews: [
+          { title: "Tendance : menus plus courts, marges plus nettes", tag: "Tendance", date: "29 jan", summary: "Réduire la carte améliore la vitesse + réduit le gaspillage. Action : identifier 3 plats à rotation lente." },
+          { title: "Inflation : ajuster sans casser l’expérience", tag: "Éco", date: "28 jan", summary: "Les hausses passent mieux via bundles / menus. Action : tester 1 bundle “famille” + 1 upsell boisson." },
+          { title: "Sécurité : check ERP & signalisations", tag: "Règlement", date: "27 jan", summary: "Rappels sur affichages et dispositifs. Action : audit 15 min hebdo + registre simple." }
+        ],
+        internalAnnouncements: [
+          { title: "Brief pré-service", tag: "Aujourd’hui", date: "17:30", summary: "Point objectifs + zones à surveiller pendant le rush." },
+          { title: "Maintenance : poignée porte cuisine", tag: "À faire", date: "Cette semaine", summary: "Créer un ticket Ops si pas déjà ouvert." },
+          { title: "Procédure : clôture de caisse", tag: "Procédure", date: "MAJ", summary: "Version simplifiée disponible dans Docs." }
+        ],
+        recentDocs: [
+          { title: "Procédure — Ouverture salle", meta: "Checklist • MAJ 2026-01-20" },
+          { title: "Procédure — Clôture caisse", meta: "Finance • MAJ 2026-01-25" },
+          { title: "Plan d’animation — Semaine", meta: "Ops • MAJ 2026-01-27" }
+        ],
+        usefulLinks: [
+          { title: "Zelty (caisse)", meta: "Accès outil", href: "#" },
+          { title: "Zenchef (réservations)", meta: "Accès outil", href: "#" },
+          { title: "Support technique", meta: "Créer un ticket Ops", href: "./operations.html" }
+        ]
+      };
+
+      function escapeHTML(str) {
+        return String(str)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function renderQuickActions(actions) {
+        const el = document.getElementById("quickActions");
+        if (!el) return;
+        el.innerHTML = actions.map(a => `
+          <a class="os-tile os-col-3" href="${escapeHTML(a.href)}">
+            <div class="os-tile-top">
+              <div class="os-tile-ttl">${escapeHTML(a.title)}</div>
+              <span class="os-tag">→</span>
+            </div>
+            <div class="os-tile-sub">${escapeHTML(a.desc)}</div>
+          </a>
+        `).join("");
+      }
+
+      function renderFeed(containerId, items) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        el.innerHTML = items.map(it => `
+          <div class="os-item">
+            <div class="os-item-top">
+              <div class="os-item-ttl">${escapeHTML(it.title)}</div>
+              <div class="os-item-meta">
+                <span class="os-tag">${escapeHTML(it.tag)}</span>
+                <span class="os-date">${escapeHTML(it.date)}</span>
+              </div>
+            </div>
+            <div class="os-item-desc">${escapeHTML(it.summary)}</div>
+          </div>
+        `).join("");
+      }
+
+      function renderDocs(items) {
+        const el = document.getElementById("recentDocs");
+        if (!el) return;
+        el.innerHTML = items.map(d => `
+          <div class="os-doc">
+            <div>
+              <div class="os-doc-ttl">${escapeHTML(d.title)}</div>
+              <div class="os-doc-meta">${escapeHTML(d.meta)}</div>
+            </div>
+            <a class="btn" href="./docs.html">Ouvrir →</a>
+          </div>
+        `).join("");
+      }
+
+      function renderLinks(items) {
+        const el = document.getElementById("usefulLinks");
+        if (!el) return;
+        el.innerHTML = items.map(l => `
+          <a class="os-link" href="${escapeHTML(l.href || "#")}">
+            <div>
+              <div style="font-weight:900;">${escapeHTML(l.title)}</div>
+              <small>${escapeHTML(l.meta)}</small>
+            </div>
+            <span class="os-tag">→</span>
+          </a>
+        `).join("");
+      }
+
+      function renderChart(data) {
+        const ctx = document.getElementById("ca7Chart");
+        if (!ctx || !window.Chart) return;
+
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: ["J-6","J-5","J-4","J-3","J-2","J-1","J"],
+            datasets: [{
+              data: data.ca_last7,
+              borderWidth: 2,
+              tension: 0.35,
+              fill: false
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false }, y: { display: false } }
+          }
+        });
+      }
+
+      function init() {
+        // Date badge
+        const fr = new Date().toLocaleDateString("fr-FR", {
+          weekday: "long",
+          day: "2-digit",
+          month: "short"
+        });
+        const badgeToday = document.getElementById("badgeToday");
+        if (badgeToday) badgeToday.textContent = `📅 ${fr}`;
+
+        const badgeStatus = document.getElementById("badgeStatus");
+        if (badgeStatus) badgeStatus.textContent = `⚓ Service : ${MOCK_DATA.meta.service_status}`;
+
+        const osVersion = document.getElementById("osVersion");
+        if (osVersion) osVersion.textContent = MOCK_DATA.meta.version;
+
+        // ✅ IMPORTANT : on ne touche PAS aux KPIs live (kpi_ca_day / kpi_covers_day / kpi_tm_day)
+        renderQuickActions(MOCK_DATA.quickActions);
+        renderFeed("feedSector", MOCK_DATA.sectorNews);
+        renderFeed("feedInternal", MOCK_DATA.internalAnnouncements);
+        renderDocs(MOCK_DATA.recentDocs);
+        renderLinks(MOCK_DATA.usefulLinks);
+        renderChart(MOCK_DATA);
+      }
+
+      init();
+    })();
+  </script>
+
 </body>
 </html>
