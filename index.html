@@ -3,16 +3,7 @@
 <head>
   <!--
   INDEX — Pirates Paradise OS (V1 Direction)
-  Objectifs :
-  - Page plus aérée, un peu moins sombre, premium dark lisible
-  - Ajout visuel : mini chart CA 7 jours (Chart.js)
-  - Ajout “Priorité du jour” (parchemin light)
-  - Footer : Support intranet (Augustin) + 2 mailto
-
-  Dépendances :
-  - assets/app.css (ton design global)
-  - assets/app.js (nav active + menu + search + data hook)
-  - Chart.js via CDN (uniquement sur cette page)
+  Live via n8n webhook (assets/app.js)
   -->
 
   <meta charset="utf-8" />
@@ -20,16 +11,15 @@
   <title>Pirates Paradise OS — Accueil</title>
 
   <!-- CSS commun -->
-  <link rel="stylesheet" href="./assets/app.css?v=os2">
-  <!-- JS commun -->
-  <script src="./assets/app.js?v=os2" defer></script>
+  <link rel="stylesheet" href="./assets/app.css?v=os3">
+  <!-- JS commun (hydrate depuis webhook n8n) -->
+  <script src="./assets/app.js?v=os3" defer></script>
 
   <!-- Chart.js (uniquement pour le mini graphique) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-  <!-- HOME ONLY : on éclaircit un cran + on aère (sans casser ton thème global) -->
+  <!-- HOME ONLY : style -->
   <style>
-    /* Légèrement moins sombre / plus respirant */
     body{
       background:
         radial-gradient(1200px 650px at 15% -10%, rgba(207,163,74,.10), transparent 55%),
@@ -37,11 +27,9 @@
         #071326;
     }
 
-    /* Aérer le contenu */
     .os-gap-lg{ margin-top:18px; }
     .os-section-pad{ padding:18px; }
 
-    /* Titres plus hiérarchisés */
     .os-h1{
       font-size:24px;
       line-height:1.15;
@@ -62,7 +50,6 @@
       line-height:1.35;
     }
 
-    /* Badge Demo/Mock discret */
     .os-pill{
       display:inline-flex;
       align-items:center;
@@ -74,9 +61,9 @@
       color:rgba(234,240,255,.90);
       font-size:12px;
       white-space:nowrap;
+      text-decoration:none;
     }
 
-    /* Priorité du jour : parchemin light (1 seule section) */
     .os-parchment{
       background:
         radial-gradient(700px 200px at 30% 20%, rgba(255,255,255,.10), transparent 60%),
@@ -85,20 +72,19 @@
       border-radius:16px;
       padding:18px;
     }
-    .os-parchment .os-parchment-title{
+    .os-parchment-title{
       font-weight:950;
       letter-spacing:.2px;
       font-size:14px;
       color:rgba(255,255,255,.92);
     }
-    .os-parchment .os-parchment-text{
+    .os-parchment-text{
       margin-top:8px;
       font-size:14px;
       line-height:1.35;
       color:rgba(234,240,255,.92);
     }
 
-    /* Grid helpers (12 col) */
     .os-grid{ display:grid; grid-template-columns:repeat(12,1fr); gap:14px; }
     .os-col-12{ grid-column:span 12; }
     .os-col-6{ grid-column:span 12; }
@@ -111,7 +97,6 @@
       .os-col-3{ grid-column:span 3; }
     }
 
-    /* Cards “soft” (un peu plus claires) */
     .os-card-soft{
       border:1px solid rgba(207,163,74,.14);
       background:rgba(10,19,36,.30);
@@ -120,7 +105,6 @@
       box-shadow:none;
     }
 
-    /* KPI mini-cards */
     .os-kpi{
       border:1px solid rgba(207,163,74,.14);
       background:rgba(7,19,38,.28);
@@ -132,7 +116,6 @@
     .os-kpi-value{ font-size:28px; font-weight:950; margin-top:6px; }
     .os-kpi-meta{ color:rgba(180,195,222,.92); font-size:12px; margin-top:6px; }
 
-    /* Progress bar objectif */
     .os-progress{
       height:10px;
       border-radius:999px;
@@ -149,7 +132,6 @@
       transition:width .4s ease;
     }
 
-    /* Mini chart wrapper — FIX taille Chart.js */
     .os-chart-wrap{
       border:1px solid rgba(207,163,74,.14);
       background:rgba(7,19,38,.22);
@@ -184,28 +166,6 @@
       display:block;
     }
 
-    /* Quick actions tiles */
-    .os-tile{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      text-decoration:none;
-      color:inherit;
-      border-radius:16px;
-      border:1px solid rgba(207,163,74,.14);
-      background:rgba(10,19,36,.28);
-      padding:14px;
-      transition:transform .08s ease, border-color .12s ease, background .12s ease;
-      min-height:92px;
-    }
-    .os-tile:hover{ border-color:rgba(207,163,74,.28); background:rgba(13,26,49,.38); }
-    .os-tile:active{ transform:translateY(1px); }
-    .os-tile:focus{ outline:3px solid rgba(207,163,74,.35); outline-offset:2px; }
-    .os-tile-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
-    .os-tile-ttl{ font-weight:950; letter-spacing:.2px; }
-    .os-tile-sub{ font-size:13px; color:rgba(180,195,222,.95); line-height:1.35; }
-
-    /* Feeds */
     .os-feed{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
     .os-item{
       border-radius:14px;
@@ -213,33 +173,7 @@
       background:rgba(10,19,36,.22);
       padding:12px;
     }
-    .os-item-top{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .os-item-ttl{ font-weight:900; }
-    .os-item-meta{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    .os-tag{
-      font-size:11px;
-      padding:3px 8px;
-      border-radius:999px;
-      border:1px solid rgba(207,163,74,.16);
-      background:rgba(5,11,20,.20);
-      color:rgba(234,240,255,.92);
-      white-space:nowrap;
-    }
-    .os-date{ font-size:11px; color:rgba(180,195,222,.92); }
-    .os-item-desc{
-      font-size:13px;
-      color:rgba(180,195,222,.95);
-      margin-top:8px;
-      line-height:1.35;
-    }
 
-    /* Docs & links */
     .os-list{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
     .os-doc{
       display:flex;
@@ -252,8 +186,6 @@
       border:1px solid rgba(207,163,74,.12);
       background:rgba(10,19,36,.22);
     }
-    .os-doc-ttl{ font-weight:900; }
-    .os-doc-meta{ font-size:12px; color:rgba(180,195,222,.92); margin-top:6px; }
 
     .os-links{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
     .os-link{
@@ -268,11 +200,7 @@
       text-decoration:none;
       color:inherit;
     }
-    .os-link:hover{ border-color:rgba(207,163,74,.26); background:rgba(13,26,49,.34); }
-    .os-link:focus{ outline:3px solid rgba(207,163,74,.35); outline-offset:2px; }
-    .os-link small{ color:rgba(180,195,222,.92); }
 
-    /* Footer discret + actions */
     .os-footer{
       margin-top:18px;
       padding:14px;
@@ -289,7 +217,6 @@
     }
     .os-footer-actions{ display:flex; gap:10px; flex-wrap:wrap; }
 
-    /* Mobile */
     @media(max-width:900px){
       .search{ display:none; }
     }
@@ -301,7 +228,6 @@
   <!-- HEADER STICKY -->
   <header class="topbar">
     <div class="container topbar-inner" style="display:flex; align-items:center; gap:14px;">
-      <!-- Gauche : marque -->
       <div class="brand" style="flex:1; min-width:220px;">
         <div class="logo" aria-hidden="true">PP</div>
         <div>
@@ -310,7 +236,6 @@
         </div>
       </div>
 
-      <!-- Centre : logo image -->
       <div style="flex:0 0 auto; display:flex; justify-content:center; align-items:center;">
         <img
           src="https://lille.pirates-paradise.fr/wp-content/uploads/2025/08/col.png"
@@ -319,7 +244,6 @@
         />
       </div>
 
-      <!-- Droite : profil + aide (mock) -->
       <div style="flex:1; min-width:220px; display:flex; justify-content:flex-end; align-items:center; gap:10px;">
         <a class="btn" href="./docs.html" aria-label="Aide et documentation">❓ Aide</a>
 
@@ -328,12 +252,11 @@
             <path fill="currentColor" d="M12 12a4 4 0 1 0-4-4a4 4 0 0 0 4 4m0 2c-4.42 0-8 2-8 4.5V21h16v-2.5c0-2.5-3.58-4.5-8-4.5"/>
           </svg>
           <span id="mockUser">Manager</span>
-          <span class="os-tag" aria-label="Mode démo">Demo</span>
+          <span class="os-pill" style="padding:3px 8px;">Demo</span>
         </div>
       </div>
     </div>
 
-    <!-- Navigation principale (stable) -->
     <div class="container" style="padding-top:10px; padding-bottom:10px;">
       <nav aria-label="Navigation principale" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; align-items:center;">
         <a class="nav-link is-active" href="./index.html" aria-current="page">Accueil</a>
@@ -352,7 +275,6 @@
         >＋</button>
       </nav>
 
-      <!-- Menu secondaire -->
       <div id="moreMenu" class="card" style="display:none; margin-top:12px; box-shadow:none;" role="region" aria-label="Menu secondaire">
         <div class="muted">Raccourcis</div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
@@ -363,7 +285,6 @@
       </div>
     </div>
 
-    <!-- Search UI + suggestions -->
     <div class="container" style="padding-bottom:14px;">
       <div class="search">
         <div class="searchbox" style="width:100%;" role="search">
@@ -379,7 +300,6 @@
         </div>
       </div>
 
-      <!-- Suggestions (discrètes) -->
       <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:10px;">
         <span class="muted">Raccourcis :</span>
         <a class="os-pill" href="./ca.html">Voir CA du jour</a>
@@ -392,7 +312,6 @@
   <!-- MAIN -->
   <main class="container">
 
-    <!-- HERO -->
     <section class="os-card-soft os-section-pad" aria-label="Résumé">
       <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
         <div>
@@ -406,7 +325,6 @@
       </div>
     </section>
 
-    <!-- Priorité du jour -->
     <section class="os-parchment os-gap-lg" aria-label="Priorité du jour">
       <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
         <div class="os-parchment-title">Priorité du jour</div>
@@ -418,40 +336,38 @@
       <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
         <a class="btn" href="./operations.html" aria-label="Aller aux ops">Ouvrir les Ops →</a>
         <a class="btn" href="./ca.html" aria-label="Aller au pilotage CA">Piloter le CA →</a>
-        <span class="os-tag" aria-label="Mode démo">Demo</span>
+        <span class="os-pill" style="padding:3px 8px;">Live</span>
       </div>
     </section>
 
-    <!-- AUJOURD’HUI -->
     <section class="os-card-soft os-section-pad os-gap-lg" aria-label="Aujourd’hui">
       <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
         <div>
           <h2 class="os-h2">Aujourd’hui</h2>
-          <div class="os-sub">Vue rapide (direction). Les automatisations arrivent ensuite.</div>
+          <div class="os-sub">Vue rapide (direction). Données live via n8n.</div>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-          <span class="os-tag">Live</span>
+          <span class="os-pill" style="padding:3px 8px;">Live</span>
           <a class="btn" href="./ca.html" aria-label="Voir le détail CA">Voir le détail →</a>
         </div>
       </div>
 
       <div class="os-grid" style="margin-top:14px;">
-        <!-- ✅ KPIs LIVE (IDs compatibles app.js) -->
         <div class="os-kpi os-col-3">
           <div class="os-kpi-label">CA jour</div>
-          <div class="os-kpi-value" id="kpi_ca_day">—</div>
+          <div class="os-kpi-value" id="kpiCa">—</div>
           <div class="os-kpi-meta" id="kpiCaMeta">vs N-1 : —</div>
         </div>
 
         <div class="os-kpi os-col-3">
           <div class="os-kpi-label">Couverts</div>
-          <div class="os-kpi-value" id="kpi_covers_day">—</div>
+          <div class="os-kpi-value" id="kpiCovers">—</div>
           <div class="os-kpi-meta" id="kpiCoversMeta">vs N-1 : —</div>
         </div>
 
         <div class="os-kpi os-col-3">
           <div class="os-kpi-label">Ticket moyen</div>
-          <div class="os-kpi-value" id="kpi_tm_day">—</div>
+          <div class="os-kpi-value" id="kpiTm">—</div>
           <div class="os-kpi-meta" id="kpiTmMeta">objectif : —</div>
         </div>
 
@@ -464,89 +380,42 @@
           <div class="os-kpi-meta" id="kpiGoalMeta">—</div>
         </div>
 
-        <!-- Mini chart CA 7 jours (demo pour l’instant) -->
         <div class="os-chart-wrap os-col-12" aria-label="Graphique CA 7 jours">
           <div class="os-chart-head">
             <div>
               <div class="os-chart-title">CA — 7 derniers jours</div>
-              <div class="os-chart-sub">Courbe discrète (demo). S’adapte à l’écran.</div>
+              <div class="os-chart-sub">Courbe discrète (live via history).</div>
             </div>
-            <span class="os-tag">Demo</span>
+            <span class="os-pill" style="padding:3px 8px;">Live</span>
           </div>
           <canvas id="ca7Chart" class="os-canvas" aria-label="Graphique CA"></canvas>
         </div>
       </div>
     </section>
 
-    <!-- ACTIONS RAPIDES -->
-    <section class="os-card-soft os-section-pad os-gap-lg" aria-label="Actions rapides">
-      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
-        <div>
-          <h2 class="os-h2">Actions rapides</h2>
-          <div class="os-sub">Clique → exécute. Orienté “tâches” (direction).</div>
+    <section class="os-grid os-gap-lg" aria-label="Zones à venir">
+      <div class="os-card-soft os-section-pad os-col-6">
+        <h2 class="os-h2">Veille — secteur restauration</h2>
+        <div class="os-sub">À brancher ensuite (news / tendances).</div>
+        <div class="os-feed">
+          <div class="os-item">—</div>
         </div>
-        <span class="os-tag">Demo</span>
       </div>
 
-      <div class="os-grid" style="margin-top:14px;" id="quickActions"></div>
-    </section>
-
-    <!-- VEILLE + ANNONCES -->
-    <section class="os-grid os-gap-lg" aria-label="Actualités et annonces">
-      <div class="os-card-soft os-section-pad os-col-6" aria-label="Veille restauration">
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
-          <div>
-            <h2 class="os-h2">Veille — secteur restauration</h2>
-            <div class="os-sub">Titres courts + tags + résumé actionnable.</div>
-          </div>
-          <span class="os-tag">Demo</span>
+      <div class="os-card-soft os-section-pad os-col-6">
+        <h2 class="os-h2">Annonces internes</h2>
+        <div class="os-sub">À brancher ensuite (briefs / maintenance / procédures).</div>
+        <div class="os-feed">
+          <div class="os-item">—</div>
         </div>
-        <div class="os-feed" id="feedSector"></div>
-      </div>
-
-      <div class="os-card-soft os-section-pad os-col-6" aria-label="Annonces internes">
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
-          <div>
-            <h2 class="os-h2">Annonces internes</h2>
-            <div class="os-sub">Ce qui compte maintenant (court, clair, daté).</div>
-          </div>
-          <a class="btn" href="./docs.html" aria-label="Aller aux ressources">Ressources →</a>
-        </div>
-        <div class="os-feed" id="feedInternal"></div>
       </div>
     </section>
 
-    <!-- DOCS + LIENS -->
-    <section class="os-grid os-gap-lg" aria-label="Documents et liens">
-      <div class="os-card-soft os-section-pad os-col-6" aria-label="Documents récents">
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
-          <div>
-            <h2 class="os-h2">Documents récents</h2>
-            <div class="os-sub">Accès direct aux derniers docs utiles.</div>
-          </div>
-          <span class="os-tag">Demo</span>
-        </div>
-        <div class="os-list" id="recentDocs"></div>
-      </div>
-
-      <div class="os-card-soft os-section-pad os-col-6" aria-label="Liens utiles">
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
-          <div>
-            <h2 class="os-h2">Liens utiles</h2>
-            <div class="os-sub">Outils du quotidien (1 clic).</div>
-          </div>
-          <span class="os-tag">Demo</span>
-        </div>
-        <div class="os-links" id="usefulLinks"></div>
-      </div>
-    </section>
-
-    <!-- FOOTER -->
     <footer class="os-footer" aria-label="Pied de page">
       <div>
         <div style="font-weight:900; letter-spacing:.2px;">Support intranet : Augustin (Admin OS)</div>
         <div style="margin-top:4px;">
-          Version : <strong id="osVersion">v0.2</strong> • Dernière MAJ : <strong id="lastUpdate">—</strong>
+          Version : <strong id="osVersion">—</strong> • Dernière MAJ : <strong id="osUpdated">—</strong>
         </div>
       </div>
 
@@ -556,6 +425,6 @@
       </div>
     </footer>
 
-</main>
+  </main>
 </body>
 </html>
