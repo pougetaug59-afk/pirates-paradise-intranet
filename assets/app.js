@@ -1,164 +1,232 @@
 (() => {
-  // =========================
-  // Pirates Paradise OS — app.js (WEBHOOK ONLY)
-  // Objectif :
-  // - Une seule source de vérité : webhook n8n
-  // - Compatible anciennes pages + nouvelles pages (IDs différents)
-  // - Pas de chiffres "demo" injectés ici
-  // =========================
+  // =========
+  // CONFIG
+  // =========
+  const DASHBOARD_API =
+    "https://pp.autopdm.fr/webhook/pp/dashboard?token=pp_lille_59";
 
-  const WEBHOOK_URL = "https://pp.autopdm.fr/webhook/pp/dashboard?token=pp_lille_59";
+  const REFRESH_MS = 2 * 60 * 1000;
 
+  // Petit helper
   const $ = (sel) => document.querySelector(sel);
 
-  const setText = (idOrEl, value) => {
-    const el = typeof idOrEl === "string" ? document.getElementById(idOrEl) : idOrEl;
-    if (!el) return false;
-    el.textContent = value;
-    return true;
-  };
-
-  const setStyleWidth = (id, pct) => {
-    const el = document.getElementById(id);
-    if (!el) return false;
-    el.style.width = `${pct}%`;
-    return true;
-  };
-
-  const eur = (n) => {
-    if (n == null || n === "" || Number.isNaN(Number(n))) return "—";
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(Number(n));
-  };
-
-  const num = (n) => {
-    if (n == null || n === "" || Number.isNaN(Number(n))) return "—";
-    return new Intl.NumberFormat("fr-FR").format(Number(n));
-  };
-
-  const pct = (n) => {
-    if (n == null || n === "" || Number.isNaN(Number(n))) return "—";
-    const v = Number(n);
-    const sign = v > 0 ? "+" : "";
-    return `${sign}${v.toFixed(1)}%`;
-  };
-
-  // 1) Sous-titre date (si présent)
+  // =========
+  // UI: date sous-titre (si présent)
+  // =========
   const subtitle = $("#subtitle");
   if (subtitle) {
-    const fr = new Intl.DateTimeFormat("fr-FR", { dateStyle: "full" }).format(new Date());
+    const fr = new Intl.DateTimeFormat("fr-FR", { dateStyle: "full" }).format(
+      new Date()
+    );
     subtitle.textContent = fr;
   }
 
-  // 2) Nav active (si présent)
+  // =========
+  // UI: nav active (si tes liens ont .nav-link)
+  // =========
   const path = (location.pathname.split("/").pop() || "index.html").toLowerCase();
   document.querySelectorAll(".nav-link").forEach((a) => {
     const href = (a.getAttribute("href") || "").toLowerCase();
     if (href === path) {
       a.classList.add("is-active");
-    } else {
-      a.classList.remove("is-active");
+      a.setAttribute("aria-current", "page");
     }
   });
 
-  // 3) Récupération webhook
-  async function fetchDashboard() {
-    const res = await fetch(WEBHOOK_URL + `&v=${Date.now()}`, { cache: "no-store" });
-    if (!res.ok) throw new Error("Webhook HTTP " + res.status);
-    return res.json();
+  // =========
+  // Format helpers
+  // =========
+  const eur = (n) =>
+    n == null || Number.isNaN(Number(n))
+      ? "—"
+      : new Intl.NumberFormat("fr-FR", {
+          style: "currency",
+          currency: "EUR",
+        }).format(Number(n));
+
+  const num = (n) =>
+    n == null || Number.isNaN(Number(n))
+      ? "—"
+      : new Intl.NumberFormat("fr-FR").format(Number(n));
+
+  const pct = (n) => {
+    if (n == null || Number.isNaN(Number(n))) return "—";
+    const x = Number(n);
+    const sign = x > 0 ? "+" : "";
+    return `${sign}${x.toFixed(1)}%`;
+  };
+
+  // =========
+  // Normalisation : accepte plusieurs formats (webhook n8n / ancien json / mock)
+  // =========
+  function normalize(raw) {
+    // Format webhook n8n attendu :
+    // { last: {...}, history: [...], updatedAt: "..." }
+    if (raw && raw.last) {
+      const last = raw.last || {};
+      const history = Array.isArray(raw.history) ? raw.history : [];
+
+      return {
+        updated_at: raw.updatedAt || raw.updated_at || last.date || null,
+
+        // KPIs jour
+        ca_day: last.ca_day ?? null,
+        covers_day: last.covers_day ?? null,
+        avg_ticket_day: last.avg_ticket_day ?? null,
+
+        // Comparaisons
+        ca_day_vs_n1_pct: last.ca_day_vs_n1_pct ?? null,
+        covers_day_vs_n1_pct: last.covers_day_vs_n1_pct ?? null,
+
+        // Objectifs (souvent pas dans ton webhook actuellement)
+        goal_ca_day: last.goal_ca_day ?? raw.goal_ca_day ?? null,
+        ticket_goal_day: last.ticket_goal_day ?? raw.ticket_goal_day ?? null,
+
+        // Historique pour graphe
+        history,
+      };
+    }
+
+    // Ancien format possible (ex: data/dashboard.json)
+    return {
+      updated_at: raw?.updated_at ?? null,
+      ca_day: raw?.ca_day ?? null,
+      covers_day: raw?.covers_day ?? null,
+      avg_ticket_day: raw?.avg_ticket ?? raw?.avg_ticket_day ?? null,
+      ca_day_vs_n1_pct: raw?.ca_day_vs_n1_pct ?? null,
+      covers_day_vs_n1_pct: raw?.covers_day_vs_n1_pct ?? null,
+      goal_ca_day: raw?.goal_ca_day ?? null,
+      ticket_goal_day: raw?.ticket_goal_day ?? null,
+      history: Array.isArray(raw?.history) ? raw.history : [],
+    };
   }
 
-  // 4) Apply data sur toutes les pages (compat IDs)
-  function applyData(payload) {
-    // Structure attendue (d’après tes captures) :
-    // payload.last = { date, ca_day, covers_day, avg_ticket_day, ca_day_vs_n1_pct, covers_day_vs_n1_pct, ... }
-    // payload.history = [...]
-    const last = payload?.last || {};
-    const updatedAt = last.date || payload?.updated_at || payload?.meta?.updated_at || "—";
+  // =========
+  // Render : supporte les IDs "anciens" + "nouveaux" (tes 2 visuels)
+  // =========
+  function render(data) {
+    // Dernière MAJ (si un élément existe)
+    const lastUpdate = $("#lastUpdate") || $("#osUpdated");
+    if (lastUpdate) lastUpdate.textContent = data.updated_at || "—";
 
-    // --- "Dernière mise à jour" (anciennes pages)
-    setText("lastUpdate", updatedAt);
-    // --- Footer (nouvelle home)
-    setText("osUpdated", updatedAt);
+    // ------- INDEX (nouveau visuel)
+    const kpiCa = $("#kpiCa");
+    if (kpiCa) kpiCa.textContent = eur(data.ca_day);
 
-    // =========================
-    // HOME (nouvelle) — IDs : kpiCa / kpiCovers / kpiTm / kpiGoal + metas
-    // =========================
-    setText("kpiCa", eur(last.ca_day));
-    setText("kpiCovers", num(last.covers_day));
-    setText("kpiTm", eur(last.avg_ticket_day));
+    const kpiCaMeta = $("#kpiCaMeta");
+    if (kpiCaMeta)
+      kpiCaMeta.textContent = `vs N-1 : ${pct(data.ca_day_vs_n1_pct)}`;
 
-    // Meta vs N-1 (si dispo)
-    // On prend les champs présents dans ton JSON (ex: ca_day_vs_n1_pct / covers_day_vs_n1_pct)
-    if (document.getElementById("kpiCaMeta")) {
-      setText("kpiCaMeta", `vs N-1 : ${pct(last.ca_day_vs_n1_pct)}`);
-    }
-    if (document.getElementById("kpiCoversMeta")) {
-      setText("kpiCoversMeta", `vs N-1 : ${pct(last.covers_day_vs_n1_pct)}`);
-    }
-    if (document.getElementById("kpiTmMeta")) {
-      // objectif ticket moyen (si tu l’ajoutes plus tard côté n8n : last.ticket_goal)
-      setText("kpiTmMeta", last.ticket_goal != null ? `objectif : ${eur(last.ticket_goal)}` : "objectif : —");
-    }
+    const kpiCovers = $("#kpiCovers");
+    if (kpiCovers) kpiCovers.textContent = num(data.covers_day);
 
-    // Objectif CA (si tu l’ajoutes plus tard côté n8n : last.goal_ca_day)
-    const goal = last.goal_ca_day != null ? Number(last.goal_ca_day) : null;
-    const ca = last.ca_day != null ? Number(last.ca_day) : null;
+    const kpiCoversMeta = $("#kpiCoversMeta");
+    if (kpiCoversMeta)
+      kpiCoversMeta.textContent = `vs N-1 : ${pct(data.covers_day_vs_n1_pct)}`;
 
-    if (document.getElementById("kpiGoal")) {
-      setText("kpiGoal", goal != null ? eur(goal) : "—");
+    const kpiTm = $("#kpiTm");
+    if (kpiTm) kpiTm.textContent = eur(data.avg_ticket_day);
+
+    const kpiTmMeta = $("#kpiTmMeta");
+    if (kpiTmMeta) {
+      kpiTmMeta.textContent =
+        data.ticket_goal_day != null ? `objectif : ${eur(data.ticket_goal_day)}` : "objectif : —";
     }
 
-    // Progress bar + texte
-    if (document.getElementById("goalBar") && document.getElementById("kpiGoalMeta")) {
-      if (goal != null && ca != null && goal > 0) {
-        const p = Math.max(0, Math.min(100, (ca / goal) * 100));
-        setStyleWidth("goalBar", p.toFixed(0));
-        const remaining = Math.max(0, goal - ca);
-        setText("kpiGoalMeta", `${p.toFixed(0)}% atteint • reste ${eur(remaining)}`);
+    const kpiGoal = $("#kpiGoal");
+    if (kpiGoal) kpiGoal.textContent = data.goal_ca_day != null ? eur(data.goal_ca_day) : "—";
+
+    const goalBar = $("#goalBar");
+    const kpiGoalMeta = $("#kpiGoalMeta");
+    if (goalBar && kpiGoalMeta) {
+      if (data.goal_ca_day != null && data.ca_day != null && Number(data.goal_ca_day) > 0) {
+        const p = Math.min(100, (Number(data.ca_day) / Number(data.goal_ca_day)) * 100);
+        goalBar.style.width = `${p.toFixed(0)}%`;
+        kpiGoalMeta.textContent = `${p.toFixed(0)}% atteint • reste ${eur(Number(data.goal_ca_day) - Number(data.ca_day))}`;
       } else {
-        setStyleWidth("goalBar", 0);
-        setText("kpiGoalMeta", "—");
+        goalBar.style.width = "0%";
+        kpiGoalMeta.textContent = "—";
       }
     }
 
-    // =========================
-    // PAGES “anciens KPIs” — IDs : kpi_ca_day / kpi_covers_day / kpi_tm_day etc.
-    // =========================
-    setText("kpi_ca_day", eur(last.ca_day));
-    setText("kpi_covers_day", num(last.covers_day));
-    setText("kpi_tm_day", eur(last.avg_ticket_day));
+    // ------- CA PAGE (ton visuel KPI : ids possibles)
+    const caDayOld = $("#kpi_ca_day");
+    if (caDayOld) caDayOld.textContent = eur(data.ca_day);
 
-    // KPIs période (si présents dans ton webhook — ex: ca_week_to_date, ca_month_to_date)
-    setText("kpi_ca_wtd", last.ca_week_to_date != null ? eur(last.ca_week_to_date) : "—");
-    setText("kpi_ca_mtd", last.ca_month_to_date != null ? eur(last.ca_month_to_date) : "—");
+    const coversOld = $("#kpi_covers_day");
+    if (coversOld) coversOld.textContent = num(data.covers_day);
 
-    // Focus/alertes (si tu ajoutes plus tard un champ)
-    if (document.getElementById("kpi_focus")) {
-      const alerts = payload?.alerts_count ?? last.alerts_count ?? null;
-      setText("kpi_focus", alerts == null ? "—" : (Number(alerts) > 0 ? `⚠️ ${alerts} alerte(s) à traiter` : "✅ RAS"));
-    }
+    const tmOld = $("#kpi_tm_day");
+    if (tmOld) tmOld.textContent = eur(data.avg_ticket_day);
 
-    // Badge “Service” (si présent sur la nouvelle home)
-    if (document.getElementById("badgeStatus")) {
-      const service = payload?.meta?.service_status || last.service_status || "—";
-      setText("badgeStatus", `⚓ Service : ${service}`);
+    // =========
+    // Chart (si canvas existe + Chart.js chargé)
+    // =========
+    const canvas = $("#ca7Chart");
+    if (canvas && window.Chart) {
+      // Prend les 7 derniers points de history si dispo, sinon rien
+      const last7 = (data.history || []).slice(-7);
+      const values = last7.map((x) => Number(x.ca_day ?? 0));
+      const labels = last7.map((x) => (x.date ? String(x.date).slice(5) : ""));
+
+      // détruire l’ancien chart si présent
+      if (window.__ppChart) {
+        try { window.__ppChart.destroy(); } catch (e) {}
+        window.__ppChart = null;
+      }
+
+      // Si pas de data -> ne pas casser
+      if (values.length) {
+        window.__ppChart = new Chart(canvas, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [
+              {
+                data: values,
+                borderWidth: 2,
+                tension: 0.35,
+                fill: false,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false }, y: { display: false } },
+          },
+        });
+      }
     }
   }
 
-  // 5) Init
-  async function init() {
+  // =========
+  // Fetch webhook
+  // =========
+  async function loadLive() {
     try {
-      const data = await fetchDashboard();
-      applyData(data);
-      console.log("[PP OS] Webhook chargé ✅", data);
+      const url = `${DASHBOARD_API}&_=${Date.now()}`; // cache-bust
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+
+      const raw = await res.json();
+      const data = normalize(raw);
+
+      // Debug utile
+      console.log("[PP OS] webhook OK ✅", { raw, data });
+
+      render(data);
     } catch (e) {
-      console.warn("[PP OS] Webhook indisponible", e);
-      // On met juste des placeholders si besoin
-      setText("lastUpdate", "indisponible");
-      setText("osUpdated", "indisponible");
+      console.warn("[PP OS] webhook FAIL ❌", e);
+
+      // Affiche au moins “indisponible” si on a un endroit où le mettre
+      const lastUpdate = $("#lastUpdate") || $("#osUpdated");
+      if (lastUpdate) lastUpdate.textContent = "indisponible";
     }
   }
 
-  init();
-  setInterval(init, 2 * 60 * 1000);
+  // Start + refresh
+  loadLive();
+  setInterval(loadLive, REFRESH_MS);
 })();
