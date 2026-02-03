@@ -1,119 +1,164 @@
 (() => {
+  // =========================
+  // Pirates Paradise OS — app.js (WEBHOOK ONLY)
+  // Objectif :
+  // - Une seule source de vérité : webhook n8n
+  // - Compatible anciennes pages + nouvelles pages (IDs différents)
+  // - Pas de chiffres "demo" injectés ici
+  // =========================
+
+  const WEBHOOK_URL = "https://pp.autopdm.fr/webhook/pp/dashboard?token=pp_lille_59";
+
   const $ = (sel) => document.querySelector(sel);
 
-  // ===============================
-  // ✅ API LIVE (n8n → JSON Dashboard)
-  // ===============================
-  const PP_API_URL = "https://pp.autopdm.fr/webhook/pp/dashboard?token=pp_lille_59";
+  const setText = (idOrEl, value) => {
+    const el = typeof idOrEl === "string" ? document.getElementById(idOrEl) : idOrEl;
+    if (!el) return false;
+    el.textContent = value;
+    return true;
+  };
 
-  // ===============================
-  // Helpers format
-  // ===============================
-  const eur = (n) =>
-    n == null || n === ""
-      ? "—"
-      : new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(Number(n));
-
-  const fmt = (n) =>
-    n == null || n === ""
-      ? "—"
-      : new Intl.NumberFormat("fr-FR").format(Number(n));
-
-  // ===============================
-  // UI helpers
-  // ===============================
-  function setText(id, value) {
+  const setStyleWidth = (id, pct) => {
     const el = document.getElementById(id);
-    if (el) el.textContent = value;
-  }
+    if (!el) return false;
+    el.style.width = `${pct}%`;
+    return true;
+  };
 
-  // Force les champs date (Du/Au) à la date LAST pour éviter la confusion
-  function syncDateInputsToLast(lastDate) {
-    if (!lastDate) return;
+  const eur = (n) => {
+    if (n == null || n === "" || Number.isNaN(Number(n))) return "—";
+    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(Number(n));
+  };
 
-    // Tous les <input type="date"> présents
-    const dateInputs = Array.from(document.querySelectorAll('input[type="date"]'));
-    dateInputs.forEach((inp) => {
-      // Certains filtres ont 2 inputs (Du/Au). En mode B, on force les deux.
-      inp.value = lastDate;
-      inp.setAttribute("value", lastDate);
-    });
+  const num = (n) => {
+    if (n == null || n === "" || Number.isNaN(Number(n))) return "—";
+    return new Intl.NumberFormat("fr-FR").format(Number(n));
+  };
 
-    // Si tu as des champs avec IDs spécifiques, on sécurise au cas où
-    const commonIds = ["fromDate", "toDate", "dateFrom", "dateTo", "du", "au"];
-    commonIds.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el && el.tagName === "INPUT") {
-        el.value = lastDate;
-        el.setAttribute("value", lastDate);
-      }
-    });
-  }
+  const pct = (n) => {
+    if (n == null || n === "" || Number.isNaN(Number(n))) return "—";
+    const v = Number(n);
+    const sign = v > 0 ? "+" : "";
+    return `${sign}${v.toFixed(1)}%`;
+  };
 
-  // Optionnel : sous-titre "aujourd'hui"
+  // 1) Sous-titre date (si présent)
   const subtitle = $("#subtitle");
   if (subtitle) {
     const fr = new Intl.DateTimeFormat("fr-FR", { dateStyle: "full" }).format(new Date());
     subtitle.textContent = fr;
   }
 
-  // Optionnel : lien actif nav
+  // 2) Nav active (si présent)
   const path = (location.pathname.split("/").pop() || "index.html").toLowerCase();
   document.querySelectorAll(".nav-link").forEach((a) => {
     const href = (a.getAttribute("href") || "").toLowerCase();
     if (href === path) {
-      a.style.color = "var(--pp-navy)";
-      a.style.fontWeight = "800";
+      a.classList.add("is-active");
+    } else {
+      a.classList.remove("is-active");
     }
   });
 
-  // ===============================
-  // ✅ Charger la data depuis n8n
-  // ===============================
-  async function loadDashboard() {
-    const url = `${PP_API_URL}&v=${Date.now()}`;
+  // 3) Récupération webhook
+  async function fetchDashboard() {
+    const res = await fetch(WEBHOOK_URL + `&v=${Date.now()}`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Webhook HTTP " + res.status);
+    return res.json();
+  }
 
-    try {
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  // 4) Apply data sur toutes les pages (compat IDs)
+  function applyData(payload) {
+    // Structure attendue (d’après tes captures) :
+    // payload.last = { date, ca_day, covers_day, avg_ticket_day, ca_day_vs_n1_pct, covers_day_vs_n1_pct, ... }
+    // payload.history = [...]
+    const last = payload?.last || {};
+    const updatedAt = last.date || payload?.updated_at || payload?.meta?.updated_at || "—";
 
-      const raw = await res.json();
+    // --- "Dernière mise à jour" (anciennes pages)
+    setText("lastUpdate", updatedAt);
+    // --- Footer (nouvelle home)
+    setText("osUpdated", updatedAt);
 
-      // ✅ MODE B : on prend TOUJOURS la dernière journée dispo
-      const data = raw && raw.last ? raw.last : null;
-      if (!data) throw new Error("JSON invalide : raw.last introuvable");
+    // =========================
+    // HOME (nouvelle) — IDs : kpiCa / kpiCovers / kpiTm / kpiGoal + metas
+    // =========================
+    setText("kpiCa", eur(last.ca_day));
+    setText("kpiCovers", num(last.covers_day));
+    setText("kpiTm", eur(last.avg_ticket_day));
 
-      // 1) Dernière mise à jour = date de la dernière journée
-      setText("lastUpdate", data.date || "—");
+    // Meta vs N-1 (si dispo)
+    // On prend les champs présents dans ton JSON (ex: ca_day_vs_n1_pct / covers_day_vs_n1_pct)
+    if (document.getElementById("kpiCaMeta")) {
+      setText("kpiCaMeta", `vs N-1 : ${pct(last.ca_day_vs_n1_pct)}`);
+    }
+    if (document.getElementById("kpiCoversMeta")) {
+      setText("kpiCoversMeta", `vs N-1 : ${pct(last.covers_day_vs_n1_pct)}`);
+    }
+    if (document.getElementById("kpiTmMeta")) {
+      // objectif ticket moyen (si tu l’ajoutes plus tard côté n8n : last.ticket_goal)
+      setText("kpiTmMeta", last.ticket_goal != null ? `objectif : ${eur(last.ticket_goal)}` : "objectif : —");
+    }
 
-      // 2) KPIs (accueil + ca)
-      setText("kpi_ca_day", eur(data.ca_day));
-      setText("kpi_covers_day", fmt(data.covers_day));
-      setText("kpi_tm_day", eur(data.avg_ticket_day));
+    // Objectif CA (si tu l’ajoutes plus tard côté n8n : last.goal_ca_day)
+    const goal = last.goal_ca_day != null ? Number(last.goal_ca_day) : null;
+    const ca = last.ca_day != null ? Number(last.ca_day) : null;
 
-      // 3) KPIs avancés (si présents sur ca.html)
-      setText("kpi_ca_wtd", eur(data.ca_week_to_date));
-      setText("kpi_ca_mtd", eur(data.ca_month_to_date));
+    if (document.getElementById("kpiGoal")) {
+      setText("kpiGoal", goal != null ? eur(goal) : "—");
+    }
 
-      // 4) Pour éviter l’incohérence visuelle : on synchronise les inputs Du/Au sur LAST
-      syncDateInputsToLast(data.date);
+    // Progress bar + texte
+    if (document.getElementById("goalBar") && document.getElementById("kpiGoalMeta")) {
+      if (goal != null && ca != null && goal > 0) {
+        const p = Math.max(0, Math.min(100, (ca / goal) * 100));
+        setStyleWidth("goalBar", p.toFixed(0));
+        const remaining = Math.max(0, goal - ca);
+        setText("kpiGoalMeta", `${p.toFixed(0)}% atteint • reste ${eur(remaining)}`);
+      } else {
+        setStyleWidth("goalBar", 0);
+        setText("kpiGoalMeta", "—");
+      }
+    }
 
-      // 5) Message d’état si présent
-      const focus = $("#kpi_focus");
-      if (focus) focus.textContent = "✅ Mode LIVE : dernière journée disponible (LAST)";
+    // =========================
+    // PAGES “anciens KPIs” — IDs : kpi_ca_day / kpi_covers_day / kpi_tm_day etc.
+    // =========================
+    setText("kpi_ca_day", eur(last.ca_day));
+    setText("kpi_covers_day", num(last.covers_day));
+    setText("kpi_tm_day", eur(last.avg_ticket_day));
 
-      console.log("[PP Intranet] LIVE OK ✅", { url, last: data.date, data });
-    } catch (e) {
-      console.error("[PP Intranet] LIVE KO ❌", e);
+    // KPIs période (si présents dans ton webhook — ex: ca_week_to_date, ca_month_to_date)
+    setText("kpi_ca_wtd", last.ca_week_to_date != null ? eur(last.ca_week_to_date) : "—");
+    setText("kpi_ca_mtd", last.ca_month_to_date != null ? eur(last.ca_month_to_date) : "—");
 
-      setText("lastUpdate", "indisponible");
+    // Focus/alertes (si tu ajoutes plus tard un champ)
+    if (document.getElementById("kpi_focus")) {
+      const alerts = payload?.alerts_count ?? last.alerts_count ?? null;
+      setText("kpi_focus", alerts == null ? "—" : (Number(alerts) > 0 ? `⚠️ ${alerts} alerte(s) à traiter` : "✅ RAS"));
+    }
 
-      const focus = $("#kpi_focus");
-      if (focus) focus.textContent = "⚠️ Données indisponibles (API)";
+    // Badge “Service” (si présent sur la nouvelle home)
+    if (document.getElementById("badgeStatus")) {
+      const service = payload?.meta?.service_status || last.service_status || "—";
+      setText("badgeStatus", `⚓ Service : ${service}`);
     }
   }
 
-  // Démarrage + refresh
-  loadDashboard();
-  setInterval(loadDashboard, 5 * 60 * 1000);
+  // 5) Init
+  async function init() {
+    try {
+      const data = await fetchDashboard();
+      applyData(data);
+      console.log("[PP OS] Webhook chargé ✅", data);
+    } catch (e) {
+      console.warn("[PP OS] Webhook indisponible", e);
+      // On met juste des placeholders si besoin
+      setText("lastUpdate", "indisponible");
+      setText("osUpdated", "indisponible");
+    }
+  }
+
+  init();
+  setInterval(init, 2 * 60 * 1000);
 })();
